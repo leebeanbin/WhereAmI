@@ -1,0 +1,24 @@
+{
+  "name": "Where Am I?",
+  "short_name": "WhereAmI",
+  "description": "나만의 레트로 모빌리티 라이프로그 다이어리",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e0e8e0",
+  "theme_color": "#1a1a2e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/banana.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/banana.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ]
+}
