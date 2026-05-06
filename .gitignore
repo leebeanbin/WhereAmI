@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# contains API keys and tokens from research session
+Researching Korean Public APIs.md
+
 # vercel
 .vercel
 

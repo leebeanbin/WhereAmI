@@ -17,6 +17,7 @@ interface LocationState {
   showTicketModal: boolean;
   cityCode: string;
   tourismNews: { title: string; distance: number } | null;
+  toast: { message: string; type: 'error' | 'success' } | null;
   setCurrentLocation: (loc: { lat: number; lng: number }) => void;
   addRoutePoint: (point: RoutePoint) => void;
   toggleTracking: () => void;
@@ -27,6 +28,7 @@ interface LocationState {
   setShowTicketModal: (show: boolean) => void;
   setCityCode: (code: string) => void;
   setTourismNews: (news: { title: string; distance: number } | null) => void;
+  setToast: (toast: { message: string; type: 'error' | 'success' } | null) => void;
 }
 
 export const useLocationStore = create<LocationState>((set) => ({
@@ -53,9 +55,11 @@ export const useLocationStore = create<LocationState>((set) => ({
   showTicketModal: false,
   cityCode: '25', // Default: 대전
   tourismNews: null,
+  toast: null,
   setNearbyStations: (stations) => set({ nearbyStations: stations }),
   setSelectedStation: (station) => set({ selectedStation: station }),
   setShowTicketModal: (show) => set({ showTicketModal: show }),
   setCityCode: (code) => set({ cityCode: code }),
   setTourismNews: (news) => set({ tourismNews: news }),
+  setToast: (toast) => set({ toast }),
 }));

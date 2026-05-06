@@ -6,6 +6,7 @@ import { TransportIconFactory } from '@/application/factories/TransportIconFacto
 import StationBillboard from '@/components/StationBillboard';
 import JourneyTicket from '@/components/JourneyTicket';
 import TourismNewsTicker from '@/components/TourismNewsTicker';
+import PixelToast from '@/components/PixelToast';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
@@ -21,6 +22,7 @@ export default function Home() {
   return (
     <main className="flex flex-col h-screen w-full bg-[#e0e8e0] text-[#212529] font-neodgm p-4 overflow-hidden relative">
       <TourismNewsTicker />
+      <PixelToast />
       
       {/* Retro Header */}
       <div className="nes-container is-rounded with-title mb-4 bg-white shadow-sm">
