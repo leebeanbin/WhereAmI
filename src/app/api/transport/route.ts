@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
 import { TagoApiAdapter } from '@/infrastructure/adapters/TagoApiAdapter';
+import { ApiResponse } from '@/lib/apiResponse';
+import { ErrorCode } from '@/constants/ResponseCodes';
 import { DEFAULT_CITY_CODE } from '@/constants/api';
 
 /**
@@ -21,42 +22,31 @@ import { DEFAULT_CITY_CODE } from '@/constants/api';
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   vehicleId:
- *                     type: string
- *                     example: "서울74사1234"
- *                   lineNo:
- *                     type: string
- *                     example: "143"
- *                   estimatedArrivalTime:
- *                     type: string
- *                     example: "2026-05-04T14:00:00Z"
- *                   currentStop:
- *                     type: string
- *                     example: "강남역"
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
  *       400:
  *         description: 잘못된 요청 (파라미터 누락)
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const stationId = searchParams.get('stationId');
-  const cityCode = searchParams.get('cityCode') || DEFAULT_CITY_CODE;
+  const cityCode = searchParams.get('cityCode') ?? DEFAULT_CITY_CODE;
 
   if (!stationId) {
-    return NextResponse.json({ error: 'stationId 파라미터가 필요합니다.' }, { status: 400 });
+    return ApiResponse.badRequest(ErrorCode.UNKNOWN_ERROR, 'stationId 파라미터가 필요합니다.');
   }
 
-  const apiKey = process.env.TAGO_API_KEY || '';
-  const adapter = new TagoApiAdapter(apiKey);
+  const adapter = new TagoApiAdapter(process.env.TAGO_API_KEY ?? '');
 
   try {
     const data = await adapter.getArrivalInfo(stationId, cityCode);
-    return NextResponse.json(data);
+    return ApiResponse.ok(data);
   } catch (error: any) {
-    console.error(error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[transport]', error);
+    return ApiResponse.serverError(ErrorCode.API_TIMEOUT, error.message);
   }
 }

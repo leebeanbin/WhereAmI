@@ -1,15 +1,16 @@
 import { IPublicTransportAdapter, TransportSchedule, StationInfo } from '../../domain/interfaces/IPublicTransportAdapter';
 import { AppError } from '../../domain/exceptions/AppError';
 import { ErrorCode } from '../../constants/ResponseCodes';
-import { DEFAULT_CITY_CODE, TAGO_ARRIVAL_PAGE_SIZE, TAGO_STATION_PAGE_SIZE } from '../../constants/api';
+import {
+  DEFAULT_CITY_CODE,
+  TAGO_ARRIVAL_PAGE_SIZE,
+  TAGO_STATION_PAGE_SIZE,
+  TAGO_BUS_ARRIVAL_BASE_URL,
+  TAGO_BUS_STATION_BASE_URL,
+} from '../../constants/api';
 
 export class TagoApiAdapter implements IPublicTransportAdapter {
-  private apiKey: string;
-  private baseUrl = 'http://apis.data.go.kr/1613000/ArvlInfoInqireService';
-
-  constructor(apiKey: string) {
-    this.apiKey = apiKey;
-  }
+  constructor(private readonly apiKey: string) {}
 
   async getArrivalInfo(stationId: string, cityCode: string = DEFAULT_CITY_CODE): Promise<TransportSchedule[]> {
     if (!this.apiKey) {
@@ -17,7 +18,7 @@ export class TagoApiAdapter implements IPublicTransportAdapter {
     }
 
     try {
-      const url = `${this.baseUrl}/getSttnAcctoArvlPrearngeInfoList?serviceKey=${this.apiKey}&cityCode=${cityCode}&nodeId=${stationId}&numOfRows=${TAGO_ARRIVAL_PAGE_SIZE}&pageNo=1&_type=json`;
+      const url = `${TAGO_BUS_ARRIVAL_BASE_URL}/getSttnAcctoArvlPrearngeInfoList?serviceKey=${this.apiKey}&cityCode=${cityCode}&nodeId=${stationId}&numOfRows=${TAGO_ARRIVAL_PAGE_SIZE}&pageNo=1&_type=json`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -29,11 +30,9 @@ export class TagoApiAdapter implements IPublicTransportAdapter {
       if (!items) return [];
 
       const itemArray = Array.isArray(items) ? items : [items];
-
       return itemArray.map((item: any) => ({
         vehicleId: item.vehicleno || '차량번호 미상',
         lineNo: item.routeno,
-        // arrtime은 초 단위 남은 시간
         estimatedArrivalTime: new Date(Date.now() + item.arrtime * 1000),
         currentStop: item.nodenm || '알 수 없음',
       }));
@@ -50,8 +49,8 @@ export class TagoApiAdapter implements IPublicTransportAdapter {
     }
 
     try {
-      const sttnUrl = `http://apis.data.go.kr/1613000/BusSttnInfoInqireService/getCrdntPrxmtSttnList?serviceKey=${this.apiKey}&gpsLati=${lat}&gpsLong=${lng}&numOfRows=${TAGO_STATION_PAGE_SIZE}&pageNo=1&_type=json`;
-      const response = await fetch(sttnUrl);
+      const url = `${TAGO_BUS_STATION_BASE_URL}/getCrdntPrxmtSttnList?serviceKey=${this.apiKey}&gpsLati=${lat}&gpsLong=${lng}&numOfRows=${TAGO_STATION_PAGE_SIZE}&pageNo=1&_type=json`;
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new AppError(ErrorCode.API_TIMEOUT, '공공데이터 포털 서버 응답 오류');
@@ -62,7 +61,6 @@ export class TagoApiAdapter implements IPublicTransportAdapter {
       if (!items) return [];
 
       const itemArray = Array.isArray(items) ? items : [items];
-
       return itemArray.map((item: any) => ({
         stationId: item.nodeid,
         stationName: item.nodenm,

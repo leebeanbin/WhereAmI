@@ -15,6 +15,13 @@ import {
   TOURISM_FETCH_DISTANCE_KM,
   TOURISM_RADIUS_M,
 } from '../../constants/tracking';
+import { MS_PER_HOUR, FORCE_REFETCH_SENTINEL_KM } from '../../constants/math';
+import type { ApiBody } from '../../lib/apiResponse';
+
+interface TourismItem {
+  title: string;
+  dist: string;
+}
 
 // 플랫폼 어댑터를 주입받을 수 있도록 설계.
 // 미전달 시 웹 기본값(navigator.geolocation)을 사용.
@@ -53,7 +60,7 @@ export function useTrackingFacade(locationAdapter?: ILocationAdapter) {
         prevLocRef.current.lat, prevLocRef.current.lng,
         rawLoc.lat, rawLoc.lng,
       );
-      const timeDiffHours = (rawLoc.time - prevLocRef.current.time) / (1000 * 60 * 60);
+      const timeDiffHours = (rawLoc.time - prevLocRef.current.time) / MS_PER_HOUR;
 
       if (timeDiffHours > 0) {
         currentSpeed = dist / timeDiffHours;
@@ -98,15 +105,15 @@ export function useTrackingFacade(locationAdapter?: ILocationAdapter) {
           lastTourismFetchLoc.current.lat, lastTourismFetchLoc.current.lng,
           rawLoc.lat, rawLoc.lng,
         )
-      : 999;
+      : FORCE_REFETCH_SENTINEL_KM;
 
     if (distFromLastFetch >= TOURISM_FETCH_DISTANCE_KM) {
       lastTourismFetchLoc.current = { lat: rawLoc.lat, lng: rawLoc.lng };
       fetch(`/api/tourism?lat=${rawLoc.lat}&lng=${rawLoc.lng}&radius=${TOURISM_RADIUS_M}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.items && data.items.length > 0) {
-            const randomItem = data.items[Math.floor(Math.random() * data.items.length)];
+        .then(res => res.json() as Promise<ApiBody<{ items: TourismItem[] }>>)
+        .then(body => {
+          if (body.success && body.data.items.length > 0) {
+            const randomItem = body.data.items[Math.floor(Math.random() * body.data.items.length)];
             setTourismNews({ title: randomItem.title, distance: parseInt(randomItem.dist) });
           }
         })

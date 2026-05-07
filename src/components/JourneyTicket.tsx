@@ -4,6 +4,7 @@ import { useLocationStore } from '@/store/useLocationStore';
 import { useSaveJourneyFacade } from '@/application/facades/useSaveJourneyFacade';
 import { getDistanceFromLatLonInKm, formatDistance, formatDuration } from '@/application/utils/geoUtils';
 import { DEFAULT_USER_ID } from '@/constants/api';
+import { MS_PER_SECOND } from '@/constants/math';
 import { useEffect, useState, useMemo } from 'react';
 
 export default function JourneyTicket() {
@@ -30,7 +31,7 @@ export default function JourneyTicket() {
     });
 
     const durationSec = route.length > 1
-      ? (route[route.length - 1].time - route[0].time) / 1000
+      ? (route[route.length - 1].time - route[0].time) / MS_PER_SECOND
       : 0;
 
     const primaryMode =

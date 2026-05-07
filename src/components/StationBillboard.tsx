@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useLocationStore } from '@/store/useLocationStore';
 import { TransportSchedule } from '@/domain/interfaces/IPublicTransportAdapter';
+import { MS_PER_MINUTE } from '@/constants/math';
+import type { ApiBody } from '@/lib/apiResponse';
 
 interface SubwayArrival {
   lineId: string;
@@ -31,8 +33,8 @@ export default function StationBillboard() {
 
     setLoading(true);
     fetch(`/api/transport?stationId=${selectedStation.stationId}&cityCode=${cityCode}`)
-      .then(res => res.json())
-      .then(data => { if (!data.error) setSchedules(data); })
+      .then(res => res.json() as Promise<ApiBody<TransportSchedule[]>>)
+      .then(body => { if (body.success) setSchedules(body.data); })
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
   }, [selectedStation, cityCode, activeTab]);
@@ -42,8 +44,8 @@ export default function StationBillboard() {
 
     setLoading(true);
     fetch(`/api/subway?stationName=${encodeURIComponent(selectedStation.stationName)}`)
-      .then(res => res.json())
-      .then(data => { if (!data.error) setSubwayArrivals(data); })
+      .then(res => res.json() as Promise<ApiBody<SubwayArrival[]>>)
+      .then(body => { if (body.success) setSubwayArrivals(body.data); })
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
   }, [selectedStation, activeTab]);
@@ -101,7 +103,7 @@ export default function StationBillboard() {
               <div className="space-y-3">
                 {schedules.map((schedule, idx) => {
                   const arrivalTime = new Date(schedule.estimatedArrivalTime);
-                  const diffMinutes = Math.round((arrivalTime.getTime() - Date.now()) / 60000);
+                  const diffMinutes = Math.round((arrivalTime.getTime() - Date.now()) / MS_PER_MINUTE);
                   const displayTime = diffMinutes <= 0 ? '곧 도착' : `${diffMinutes}분 후`;
                   return (
                     <div key={idx} className="flex justify-between items-center bg-[#000] p-2 border border-[#333]">

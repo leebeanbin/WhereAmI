@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
 import { mapRegionToCityCode } from '@/application/utils/cityCodeMapper';
-import { DEFAULT_CITY_CODE } from '@/constants/api';
+import { ApiResponse } from '@/lib/apiResponse';
+import { ErrorCode } from '@/constants/ResponseCodes';
+import { DEFAULT_CITY_CODE, DEFAULT_REGION_NAME, KAKAO_LOCAL_API_URL } from '@/constants/api';
 
 /**
  * @swagger
@@ -24,7 +25,7 @@ import { DEFAULT_CITY_CODE } from '@/constants/api';
  *           type: number
  *     responses:
  *       200:
- *         description: "{ cityCode: string, regionName: string }"
+ *         description: "{ success: true, data: { cityCode, regionName } }"
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -32,31 +33,30 @@ export async function GET(request: Request) {
   const lng = searchParams.get('lng');
 
   if (!lat || !lng) {
-    return NextResponse.json({ error: 'lat, lng 파라미터가 필요합니다.' }, { status: 400 });
+    return ApiResponse.badRequest(ErrorCode.UNKNOWN_ERROR, 'lat, lng 파라미터가 필요합니다.');
   }
 
   const restKey = process.env.KAKAO_REST_API_KEY;
   if (!restKey) {
-    // REST 키 미설정 시 기본 도시 코드(대전)로 graceful fallback
-    console.warn('[Geocode] KAKAO_REST_API_KEY 미설정 — 기본값(대전, 25) 반환');
-    return NextResponse.json({ cityCode: DEFAULT_CITY_CODE, regionName: '대전광역시' });
+    console.warn('[Geocode] KAKAO_REST_API_KEY 미설정 — 기본값 반환');
+    return ApiResponse.ok({ cityCode: DEFAULT_CITY_CODE, regionName: DEFAULT_REGION_NAME });
   }
 
   try {
-    const url = `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${lng}&y=${lat}`;
+    const url = `${KAKAO_LOCAL_API_URL}?x=${lng}&y=${lat}`;
     const response = await fetch(url, {
       headers: { Authorization: `KakaoAK ${restKey}` },
     });
 
     if (!response.ok) throw new Error(`Kakao API 오류: ${response.status}`);
 
-    const data = await response.json();
-    const regionName: string = data.documents?.[0]?.region_1depth_name ?? '대전광역시';
+    const body = await response.json();
+    const regionName: string = body.documents?.[0]?.region_1depth_name ?? DEFAULT_REGION_NAME;
     const cityCode = mapRegionToCityCode(regionName);
 
-    return NextResponse.json({ cityCode, regionName });
+    return ApiResponse.ok({ cityCode, regionName });
   } catch (error: any) {
     console.error('[Geocode API Error]', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return ApiResponse.serverError(ErrorCode.INTERNAL_SERVER_ERROR, error.message);
   }
 }

@@ -1,9 +1,7 @@
-import { NextResponse } from 'next/server';
 import { AppError } from '@/domain/exceptions/AppError';
+import { ApiResponse } from '@/lib/apiResponse';
 import { ErrorCode } from '@/constants/ResponseCodes';
-import { TRAIN_PAGE_SIZE } from '@/constants/api';
-
-const TAGO_TRAIN_BASE = 'http://apis.data.go.kr/1613000/TrainInfoService';
+import { TRAIN_PAGE_SIZE, TAGO_TRAIN_BASE_URL } from '@/constants/api';
 
 /**
  * @swagger
@@ -37,16 +35,16 @@ const TAGO_TRAIN_BASE = 'http://apis.data.go.kr/1613000/TrainInfoService';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const depStationName = searchParams.get('depStationName');
-  const arrStationName = searchParams.get('arrStationName') || '';
-  const depPlandTime = searchParams.get('depPlandTime') || getTodayString();
+  const arrStationName = searchParams.get('arrStationName') ?? '';
+  const depPlandTime = searchParams.get('depPlandTime') ?? getTodayString();
 
   if (!depStationName) {
-    return NextResponse.json({ error: 'depStationName 파라미터가 필요합니다.' }, { status: 400 });
+    return ApiResponse.badRequest(ErrorCode.UNKNOWN_ERROR, 'depStationName 파라미터가 필요합니다.');
   }
 
-  const apiKey = process.env.TAGO_API_KEY || '';
+  const apiKey = process.env.TAGO_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: 'TAGO_API_KEY가 설정되지 않았습니다.' }, { status: 500 });
+    return ApiResponse.serverError(ErrorCode.API_UNAUTHORIZED, 'TAGO_API_KEY가 설정되지 않았습니다.');
   }
 
   try {
@@ -60,37 +58,33 @@ export async function GET(request: Request) {
       depPlandTime,
     });
 
-    const url = `${TAGO_TRAIN_BASE}/getStrtpntAlocFndTrainInfo?${params}`;
-    const response = await fetch(url);
+    const response = await fetch(`${TAGO_TRAIN_BASE_URL}/getStrtpntAlocFndTrainInfo?${params}`);
 
     if (!response.ok) {
       throw new AppError(ErrorCode.API_TIMEOUT, `TAGO 열차 API 오류: ${response.status}`);
     }
 
-    const data = await response.json();
-    const items = data?.response?.body?.items?.item;
+    const body = await response.json();
+    const items = body?.response?.body?.items?.item;
 
-    if (!items) {
-      return NextResponse.json([]);
-    }
+    if (!items) return ApiResponse.ok([]);
 
     const itemArray = Array.isArray(items) ? items : [items];
-
     const trains = itemArray.map((item: any) => ({
       trainNo: item.trainNo,
-      trainType: item.trainType,         // 1: KTX, 3: 새마을, 5: 무궁화 등
+      trainType: item.trainType,
       trainTypeName: item.trainTypeName,
       depPlaceName: item.depPlaceName,
       arrPlaceName: item.arrPlaceName,
-      depPlandTime: item.depPlandTime,   // YYYYMMDDHHMMSS
+      depPlandTime: item.depPlandTime,
       arrPlandTime: item.arrPlandTime,
       adultCharge: item.adultCharge,
     }));
 
-    return NextResponse.json(trains);
+    return ApiResponse.ok(trains);
   } catch (error: any) {
     console.error('[Train API Error]', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return ApiResponse.serverError(ErrorCode.API_TIMEOUT, error.message);
   }
 }
 

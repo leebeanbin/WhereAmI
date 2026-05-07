@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
 import { TagoApiAdapter } from '@/infrastructure/adapters/TagoApiAdapter';
+import { ApiResponse } from '@/lib/apiResponse';
+import { ErrorCode } from '@/constants/ResponseCodes';
 
 /**
  * @swagger
@@ -28,17 +29,16 @@ export async function GET(request: Request) {
   const lng = searchParams.get('lng');
 
   if (!lat || !lng) {
-    return NextResponse.json({ error: 'lat, lng 파라미터가 필요합니다.' }, { status: 400 });
+    return ApiResponse.badRequest(ErrorCode.UNKNOWN_ERROR, 'lat, lng 파라미터가 필요합니다.');
   }
 
-  const apiKey = process.env.TAGO_API_KEY || '';
-  const adapter = new TagoApiAdapter(apiKey);
+  const adapter = new TagoApiAdapter(process.env.TAGO_API_KEY ?? '');
 
   try {
     const data = await adapter.getNearbyStations(parseFloat(lat), parseFloat(lng));
-    return NextResponse.json(data);
+    return ApiResponse.ok(data);
   } catch (error: any) {
-    console.error(error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[stations]', error);
+    return ApiResponse.serverError(ErrorCode.API_TIMEOUT, error.message);
   }
 }

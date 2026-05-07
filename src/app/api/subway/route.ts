@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
-import { SUBWAY_PAGE_SIZE } from '@/constants/api';
+import { ApiResponse } from '@/lib/apiResponse';
+import { ErrorCode } from '@/constants/ResponseCodes';
+import { SUBWAY_PAGE_SIZE, SEOUL_METRO_API_URL, SEOUL_METRO_NO_DATA_CODE } from '@/constants/api';
 
 /**
  * @swagger
@@ -20,25 +21,30 @@ import { SUBWAY_PAGE_SIZE } from '@/constants/api';
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   lineId:
- *                     type: string
- *                     example: "2"
- *                   trainLineNm:
- *                     type: string
- *                     example: "성수행 - 외선순환"
- *                   arvlMsg2:
- *                     type: string
- *                     example: "2분 후 (잠실나루)"
- *                   arvlMsg3:
- *                     type: string
- *                     example: "잠실나루"
- *                   arvlCd:
- *                     type: string
- *                     description: "도착 코드 (0:진입, 1:도착, 2:출발, 3:전역출발, 4:전전역출발)"
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       lineId:
+ *                         type: string
+ *                         example: "2"
+ *                       trainLineNm:
+ *                         type: string
+ *                         example: "성수행 - 외선순환"
+ *                       arvlMsg2:
+ *                         type: string
+ *                         example: "2분 후 (잠실나루)"
+ *                       arvlMsg3:
+ *                         type: string
+ *                         example: "잠실나루"
+ *                       arvlCd:
+ *                         type: string
+ *                         description: "도착 코드 (0:진입, 1:도착, 2:출발, 3:전역출발, 4:전전역출발)"
  *       400:
  *         description: 잘못된 요청
  *       500:
@@ -49,47 +55,44 @@ export async function GET(request: Request) {
   const stationName = searchParams.get('stationName');
 
   if (!stationName) {
-    return NextResponse.json({ error: 'stationName 파라미터가 필요합니다.' }, { status: 400 });
+    return ApiResponse.badRequest(ErrorCode.UNKNOWN_ERROR, 'stationName 파라미터가 필요합니다.');
   }
 
-  const apiKey = process.env.SEOUL_METRO_API_KEY || '';
+  const apiKey = process.env.SEOUL_METRO_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: 'SEOUL_METRO_API_KEY가 설정되지 않았습니다.' }, { status: 500 });
+    return ApiResponse.serverError(ErrorCode.API_UNAUTHORIZED, 'SEOUL_METRO_API_KEY가 설정되지 않았습니다.');
   }
 
   try {
-    const encodedStation = encodeURIComponent(stationName);
-    const url = `http://swopenAPI.seoul.go.kr/api/subway/${apiKey}/json/realtimeStationArrival/0/${SUBWAY_PAGE_SIZE}/${encodedStation}`;
-
+    const url = `${SEOUL_METRO_API_URL}/${apiKey}/json/realtimeStationArrival/0/${SUBWAY_PAGE_SIZE}/${encodeURIComponent(stationName)}`;
     const response = await fetch(url);
+
     if (!response.ok) {
       throw new Error(`서울 교통 공사 API 오류: ${response.status}`);
     }
 
-    const data = await response.json();
+    const body = await response.json();
 
-    if (data.errorMessage) {
-      const code = data.errorMessage.code;
-      if (code === 'INFO-200') {
-        return NextResponse.json([]);
+    if (body.errorMessage) {
+      if (body.errorMessage.code === SEOUL_METRO_NO_DATA_CODE) {
+        return ApiResponse.ok([]);
       }
-      throw new Error(data.errorMessage.message);
+      throw new Error(body.errorMessage.message);
     }
 
-    const items: any[] = data?.realtimeStationArrival?.row ?? [];
-
+    const items: any[] = body?.realtimeStationArrival?.row ?? [];
     const arrivals = items.map((item: any) => ({
-      lineId: item.subwayId,           // 호선 ID (1001=1호선, 1002=2호선 ...)
-      trainLineNm: item.trainLineNm,   // 행선지 방향
-      arvlMsg2: item.arvlMsg2,         // 도착 메시지 (n분 후)
-      arvlMsg3: item.arvlMsg3,         // 현재 위치 (전역 이름)
-      arvlCd: item.arvlCd,             // 도착 코드
-      recptnDt: item.recptnDt,         // 정보 수신 시각
+      lineId: item.subwayId,
+      trainLineNm: item.trainLineNm,
+      arvlMsg2: item.arvlMsg2,
+      arvlMsg3: item.arvlMsg3,
+      arvlCd: item.arvlCd,
+      recptnDt: item.recptnDt,
     }));
 
-    return NextResponse.json(arrivals);
+    return ApiResponse.ok(arrivals);
   } catch (error: any) {
     console.error('[Subway API Error]', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return ApiResponse.serverError(ErrorCode.API_TIMEOUT, error.message);
   }
 }
