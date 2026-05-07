@@ -1,3 +1,5 @@
+export type TransportMode = 'walk' | 'bus' | 'train' | null;
+
 export interface RoutePoint {
   lat: number;
   lng: number;

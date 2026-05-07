@@ -1,9 +1,8 @@
 import { create } from 'zustand';
-import { RoutePoint } from '../domain/models/Journey';
+import { RoutePoint, TransportMode } from '../domain/models/Journey';
 import { StationInfo } from '../domain/interfaces/IPublicTransportAdapter';
 
-export type { RoutePoint };
-export type TransportMode = 'walk' | 'bus' | 'train' | null;
+export type { RoutePoint, TransportMode };
 
 interface LocationState {
   currentLocation: { lat: number; lng: number } | null;
