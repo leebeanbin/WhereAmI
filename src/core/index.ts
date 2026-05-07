@@ -1,11 +1,11 @@
 /**
- * 크로스 플랫폼 공유 코드 경계.
+ * Cross-platform shared code boundary.
  *
- * 이 파일에서 export 되는 모든 것은:
- *   - 브라우저 API (window, document, navigator) 에 의존하지 않음
- *   - React Native / Node.js / Swift(BFF 호출)에서 동일하게 사용 가능
+ * Everything exported here:
+ *   - Does NOT depend on browser APIs (window, document, navigator)
+ *   - Can be used equally from React Native / Node.js / Swift (via BFF)
  *
- * Web-only 코드 (components/, platform/web/) 는 여기서 export 하지 않는다.
+ * Web-only code (components/, platform/web/) is NOT exported here.
  */
 
 // Domain
@@ -20,19 +20,22 @@ export { getDistanceFromLatLonInKm, formatDistance, formatDuration } from '../ap
 export { mapRegionToCityCode } from '../application/utils/cityCodeMapper';
 export { TransportIconFactory } from '../application/factories/TransportIconFactory';
 
+// Application — facades
+export { useTrackingFacade } from '../application/facades/useTrackingFacade';
+
+// Application — queries
+export { fetchJourneys, fetchJourneyByShareId } from '../application/queries/fetchJourneys';
+
 // Application — error handling
 export { GlobalExceptionHandler } from '../application/handlers/GlobalExceptionHandler';
 export { GlobalSuccessHandler } from '../application/handlers/GlobalSuccessHandler';
 
 // Constants
 export { ErrorCode, SuccessCode } from '../constants/ResponseCodes';
+export { DEFAULT_USER_ID, DEFAULT_CITY_CODE, JOURNEYS_FETCH_LIMIT } from '../constants/api';
 
 // Store (Zustand — works in React Native)
 export { useLocationStore } from '../store/useLocationStore';
-
-// Infrastructure — adapters (platform-agnostic ones only)
-export { TagoApiAdapter } from '../infrastructure/adapters/TagoApiAdapter';
-export { FirebaseJourneyRepository } from '../infrastructure/repositories/FirebaseJourneyRepository';
 
 // Platform contract
 export type { PlatformConfig } from '../platform/types';
