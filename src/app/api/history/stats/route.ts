@@ -6,6 +6,8 @@ import { ApiResponse } from '@/lib/apiResponse';
 import { ErrorCode } from '@/constants/ResponseCodes';
 import { DEFAULT_USER_ID, JOURNEYS_FETCH_LIMIT } from '@/constants/api';
 import { DECIMAL_2_FACTOR } from '@/constants/math';
+import type { HistoryStatsRequestDto } from '@/application/dtos/requests';
+import type { JourneyStatsDto } from '@/application/dtos/StationDto';
 
 /**
  * @swagger
@@ -18,18 +20,19 @@ import { DECIMAL_2_FACTOR } from '@/constants/math';
  *         name: userId
  *         schema:
  *           type: string
- *         description: "사용자 ID (미전달 시 anonymous 사용)"
  *     responses:
  *       200:
  *         description: "통계 집계 성공"
  */
 export async function GET(req: NextRequest) {
-  const userId = req.nextUrl.searchParams.get('userId') ?? DEFAULT_USER_ID;
+  const dto: HistoryStatsRequestDto = {
+    userId: req.nextUrl.searchParams.get('userId') ?? DEFAULT_USER_ID,
+  };
 
   try {
     const q = query(
       collection(db, 'journeys'),
-      where('userId', '==', userId),
+      where('userId', '==', dto.userId),
       where('status', '==', 'completed'),
       limit(JOURNEYS_FETCH_LIMIT)
     );
@@ -39,11 +42,13 @@ export async function GET(req: NextRequest) {
     const totalDistanceKm = journeys.reduce((s, j) => s + (j.totalDistanceKm ?? 0), 0);
     const totalDurationSec = journeys.reduce((s, j) => s + (j.totalDurationSec ?? 0), 0);
 
-    return ApiResponse.ok({
+    const stats: JourneyStatsDto = {
       totalDistanceKm: Math.round(totalDistanceKm * DECIMAL_2_FACTOR) / DECIMAL_2_FACTOR,
       totalDurationSec,
       journeyCount: journeys.length,
-    });
+    };
+
+    return ApiResponse.ok<JourneyStatsDto>(stats);
   } catch (error: any) {
     console.error('[history/stats]', error);
     return ApiResponse.serverError(ErrorCode.INTERNAL_SERVER_ERROR, error.message);
