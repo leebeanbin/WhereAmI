@@ -3,25 +3,23 @@
     "name": "Where Am I?",
     "slug": "where-am-i",
     "version": "1.0.0",
+    "sdkVersion": "54.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "scheme": "whereami",
     "plugins": [
       [
-        "react-native-geolocation-service",
+        "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "위치 정보를 사용하여 이동 경로를 기록합니다."
+          "locationWhenInUsePermission": "이동 경로 기록을 위해 위치 정보가 필요합니다.",
+          "locationAlwaysAndWhenInUsePermission": "백그라운드 추적을 위해 위치 정보가 필요합니다."
         }
       ]
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.whereami.app",
-      "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "이동 경로 기록을 위해 위치 정보가 필요합니다.",
-        "NSLocationAlwaysUsageDescription": "백그라운드 추적을 위해 위치 정보가 필요합니다."
-      }
+      "bundleIdentifier": "com.whereami.app"
     },
     "android": {
       "package": "com.whereami.app",

@@ -1,29 +1,24 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
-import MapView, { Polyline, Marker } from 'react-native-maps';
+import MapView, { Polyline } from 'react-native-maps';
 import {
   useLocationStore,
   useTrackingFacade,
   TransportIconFactory,
   ILocationAdapter,
-
-
 } from '@whereami/core';
 
-// ROUTE_COLORS, MAP_ZOOM_LEVEL 등은 src/core/index.ts에서 re-export 필요 시 추가
-// 현재는 직접 상수 사용
-const POLYLINE_COLORS = {
+const POLYLINE_COLORS: Record<string, string> = {
   walk: '#00FF00',
   bus: '#0000FF',
   train: '#FF0000',
-} as const;
+};
 
 interface Props {
   geolocationAdapter: ILocationAdapter;
 }
 
 export function TrackingScreen({ geolocationAdapter }: Props) {
-  // useTrackingFacade에 네이티브 어댑터 주입 — 웹과 동일한 EMA 로직 실행
   const { startTracking, stopTracking } = useTrackingFacade(geolocationAdapter);
   const { currentLocation, route, isTracking, emaSpeed, confirmedMode } = useLocationStore();
 
