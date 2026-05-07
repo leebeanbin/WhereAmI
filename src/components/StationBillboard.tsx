@@ -5,10 +5,9 @@ import { useLocationStore } from '@/store/useLocationStore';
 import { TransportSchedule } from '@/domain/interfaces/IPublicTransportAdapter';
 
 export default function StationBillboard() {
-  const { selectedStation, setSelectedStation, currentLocation, cityCode } = useLocationStore();
+  const { selectedStation, setSelectedStation, cityCode, setToast } = useLocationStore();
   const [schedules, setSchedules] = useState<TransportSchedule[]>([]);
   const [loading, setLoading] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!selectedStation) return;
@@ -30,22 +29,12 @@ export default function StationBillboard() {
   if (!selectedStation) return null;
 
   const handleCheckIn = () => {
-    setToastMessage(`[${selectedStation.stationName}] 체크인 완료! 📝`);
+    setToast({ message: `[${selectedStation.stationName}] 체크인 완료! 📝`, type: 'success' });
     // TODO: Firestore에 이벤트 추가 로직 연동
-    setTimeout(() => setToastMessage(null), 3000);
   };
 
   return (
     <>
-      {/* 픽셀 토스트 메시지 */}
-      {toastMessage && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] animate-bounce">
-          <div className="nes-balloon from-bottom text-xs font-neodgm px-4 py-2 text-center text-blue-600 drop-shadow-md">
-            {toastMessage}
-          </div>
-        </div>
-      )}
-
       <div className="absolute bottom-0 left-0 right-0 z-50 p-4 animate-slide-up">
         <div className="nes-container is-rounded bg-[#1a1a1a] text-[#00ff00] font-neodgm shadow-2xl relative">
           {/* 닫기 버튼 */}
