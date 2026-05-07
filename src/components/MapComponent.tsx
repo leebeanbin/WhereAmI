@@ -3,25 +3,23 @@
 import { Map, Polyline, MapMarker } from 'react-kakao-maps-sdk';
 import { useLocationStore } from '@/store/useLocationStore';
 import { TransportIconFactory } from '@/application/factories/TransportIconFactory';
-import { mapRegionToCityCode } from '@/application/utils/cityCodeMapper';
 import { useNearbyStations } from '@/application/hooks/useNearbyStations';
-import { useEffect, useState, useRef } from 'react';
+import { useCityCode } from '@/application/hooks/useCityCode';
+import { MAP_ZOOM_LEVEL, STATION_MARKER_SIZE, PLAYER_MARKER_SIZE, ROUTE_COLORS, ROUTE_STROKE_WEIGHT, ROUTE_STROKE_OPACITY } from '@/constants/map';
+import { useEffect, useState } from 'react';
 
 export default function MapComponent() {
   const {
     currentLocation, route, confirmedMode,
     nearbyStations,
     selectedStation, setSelectedStation,
-    cityCode, setCityCode
   } = useLocationStore();
   const [isLoaded, setIsLoaded] = useState(false);
-  const lastGeocodedLoc = useRef<{lat: number, lng: number} | null>(null);
 
   useNearbyStations();
+  useCityCode();
 
   useEffect(() => {
-    // Kakao Map 스크립트 로드 완료 후 렌더링을 보장하기 위한 딜레이 또는 체크
-    // Next.js Script 태그의 onLoad 이벤트를 활용할 수도 있으나, 여기서는 sdk.js가 window.kakao 객체를 주입했는지 확인합니다.
     const checkKakao = setInterval(() => {
       if (window.kakao && window.kakao.maps) {
         setIsLoaded(true);
@@ -30,29 +28,6 @@ export default function MapComponent() {
     }, 100);
     return () => clearInterval(checkKakao);
   }, []);
-
-  // Kakao Geocoder를 활용하여 위치 기반 cityCode 자동 갱신
-  useEffect(() => {
-    if (!currentLocation || !isLoaded || !window.kakao?.maps?.services) return;
-    
-    // 거리 차이 계산 (대략 0.1도가 약 10km)
-    const distanceSq = lastGeocodedLoc.current 
-      ? Math.pow(currentLocation.lat - lastGeocodedLoc.current.lat, 2) + Math.pow(currentLocation.lng - lastGeocodedLoc.current.lng, 2)
-      : 1000;
-      
-    // 처음이거나 약 10km 이상 크게 이동했을 때만 Geocoding 호출 (API 트래픽 절약)
-    if (distanceSq > 0.01) {
-      lastGeocodedLoc.current = currentLocation;
-      const geocoder = new window.kakao.maps.services.Geocoder();
-      geocoder.coord2RegionCode(currentLocation.lng, currentLocation.lat, (result, status) => {
-        if (status === window.kakao.maps.services.Status.OK) {
-          const region1 = result[0]?.region_1depth_name || '대전광역시';
-          const newCityCode = mapRegionToCityCode(region1);
-          setCityCode(newCityCode);
-        }
-      });
-    }
-  }, [currentLocation, isLoaded, setCityCode]);
 
   if (!currentLocation) return null;
 
@@ -88,62 +63,57 @@ export default function MapComponent() {
   }
 
   const getStrokeColor = (mode: string | null) => {
-    if (mode === 'bus') return '#0000FF'; // Blue
-    if (mode === 'train') return '#FF0000'; // Red
-    return '#00FF00'; // Green for walk
+    if (mode === 'bus') return ROUTE_COLORS.bus;
+    if (mode === 'train') return ROUTE_COLORS.train;
+    return ROUTE_COLORS.walk;
   };
-  
-  const getStrokeStyle = (mode: string | null) => {
-    if (mode === 'walk' || mode === null) return 'shortdash';
-    return 'solid';
-  };
+
+  const getStrokeStyle = (mode: string | null) =>
+    mode === 'walk' || mode === null ? 'shortdash' : 'solid';
 
   return (
     <Map
       center={currentLocation}
       style={{ width: '100%', height: '100%', borderRadius: '8px' }}
-      level={3} // 확대 레벨 (작을수록 확대)
+      level={MAP_ZOOM_LEVEL}
       className="border-4 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]"
-      onClick={() => setSelectedStation(null)} // 지도 빈 곳 클릭 시 전광판 닫기
+      onClick={() => setSelectedStation(null)}
     >
-      {/* 주변 정류장 마커 렌더링 */}
       {nearbyStations.map((station) => (
-          <MapMarker
-             key={station.stationId}
-             position={{ lat: station.lat, lng: station.lng }}
-             image={{
-                src: TransportIconFactory.getStationMarkerPath(station.type ?? 'bus'),
-                size: { width: 36, height: 36 },
-                options: { offset: { x: 18, y: 36 } }
-             }}
-             title={station.stationName}
-             onClick={() => setSelectedStation(station)}
-          />
+        <MapMarker
+          key={station.stationId}
+          position={{ lat: station.lat, lng: station.lng }}
+          image={{
+            src: TransportIconFactory.getStationMarkerPath(station.type ?? 'bus'),
+            size: { width: STATION_MARKER_SIZE, height: STATION_MARKER_SIZE },
+            options: { offset: { x: STATION_MARKER_SIZE / 2, y: STATION_MARKER_SIZE } },
+          }}
+          title={station.stationName}
+          onClick={() => setSelectedStation(station)}
+        />
       ))}
 
-      {/* 내 현재 위치 커스텀 마커 (팩토리에서 가져온 마인크래프트 아이콘) */}
-      <MapMarker 
+      <MapMarker
         position={currentLocation}
         image={{
-            src: TransportIconFactory.getIconPath(confirmedMode),
-            size: { width: 48, height: 48 }, // 픽셀 아이콘 크기
-            options: { offset: { x: 24, y: 48 } } // 마커의 기준점을 이미지 하단 중앙으로
+          src: TransportIconFactory.getIconPath(confirmedMode),
+          size: { width: PLAYER_MARKER_SIZE, height: PLAYER_MARKER_SIZE },
+          options: { offset: { x: PLAYER_MARKER_SIZE / 2, y: PLAYER_MARKER_SIZE } },
         }}
       />
-      
-      {/* 이동 경로 궤적 (수단별 색상 구분) */}
-      {segments.map((seg, idx) => (
+
+      {segments.map((seg, idx) =>
         seg.path.length > 1 && (
           <Polyline
             key={idx}
             path={[seg.path]}
-            strokeWeight={6}
+            strokeWeight={ROUTE_STROKE_WEIGHT}
             strokeColor={getStrokeColor(seg.mode)}
-            strokeOpacity={0.8}
+            strokeOpacity={ROUTE_STROKE_OPACITY}
             strokeStyle={getStrokeStyle(seg.mode) as any}
           />
         )
-      ))}
+      )}
     </Map>
   );
 }
