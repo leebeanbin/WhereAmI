@@ -5,20 +5,13 @@ import { useLocationStore } from '@/store/useLocationStore';
 import { TransportSchedule } from '@/domain/interfaces/IPublicTransportAdapter';
 import { MS_PER_MINUTE } from '@/constants/math';
 import type { ApiBody } from '@/lib/apiResponse';
-
-interface SubwayArrival {
-  lineId: string;
-  trainLineNm: string;
-  arvlMsg2: string;
-  arvlMsg3: string;
-  arvlCd: string;
-}
+import type { SubwayArrivalDto } from '@/application/dtos/TransportDto';
 
 export default function StationBillboard() {
   const { selectedStation, setSelectedStation, cityCode, setToast } = useLocationStore();
   const [activeTab, setActiveTab] = useState<'bus' | 'subway'>('bus');
   const [schedules, setSchedules] = useState<TransportSchedule[]>([]);
-  const [subwayArrivals, setSubwayArrivals] = useState<SubwayArrival[]>([]);
+  const [subwayArrivals, setSubwayArrivals] = useState<SubwayArrivalDto[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -44,7 +37,7 @@ export default function StationBillboard() {
 
     setLoading(true);
     fetch(`/api/subway?stationName=${encodeURIComponent(selectedStation.stationName)}`)
-      .then(res => res.json() as Promise<ApiBody<SubwayArrival[]>>)
+      .then(res => res.json() as Promise<ApiBody<SubwayArrivalDto[]>>)
       .then(body => { if (body.success) setSubwayArrivals(body.data); })
       .catch(err => console.error(err))
       .finally(() => setLoading(false));

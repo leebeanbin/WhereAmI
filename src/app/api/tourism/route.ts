@@ -2,6 +2,8 @@ import { ApiResponse } from '@/lib/apiResponse';
 import { ErrorCode } from '@/constants/ResponseCodes';
 import { TOURISM_PAGE_SIZE, TOURISM_MOBILE_OS, TOURISM_APP_NAME, TOUR_API_BASE_URL } from '@/constants/api';
 import { TOURISM_RADIUS_M } from '@/constants/tracking';
+import { TourismBuilder } from '@/application/builders/TourismBuilder';
+import type { TourismListDto } from '@/application/dtos/TourismDto';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -28,20 +30,11 @@ export async function GET(request: Request) {
     const items = body?.response?.body?.items?.item;
 
     if (!items || items.length === 0) {
-      return ApiResponse.ok({ items: [] });
+      return ApiResponse.ok<TourismListDto>({ items: [] });
     }
 
-    const itemArray = Array.isArray(items) ? items : [items];
-    const cleanedItems = itemArray.map((item: any) => ({
-      title: item.title,
-      address: item.addr1,
-      dist: item.dist,
-      imageUrl: item.firstimage || null,
-      mapX: item.mapx,
-      mapY: item.mapy,
-    }));
-
-    return ApiResponse.ok({ items: cleanedItems });
+    const itemArray: Record<string, any>[] = Array.isArray(items) ? items : [items];
+    return ApiResponse.ok<TourismListDto>(TourismBuilder.fromRawList(itemArray));
   } catch (error: any) {
     console.error('[Tourism API Error]', error);
     return ApiResponse.serverError(ErrorCode.API_TIMEOUT, error.message);

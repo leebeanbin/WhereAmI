@@ -17,11 +17,7 @@ import {
 } from '../../constants/tracking';
 import { MS_PER_HOUR, FORCE_REFETCH_SENTINEL_KM } from '../../constants/math';
 import type { ApiBody } from '../../lib/apiResponse';
-
-interface TourismItem {
-  title: string;
-  dist: string;
-}
+import type { TourismListDto } from '../dtos/TourismDto';
 
 // 플랫폼 어댑터를 주입받을 수 있도록 설계.
 // 미전달 시 웹 기본값(navigator.geolocation)을 사용.
@@ -110,7 +106,7 @@ export function useTrackingFacade(locationAdapter?: ILocationAdapter) {
     if (distFromLastFetch >= TOURISM_FETCH_DISTANCE_KM) {
       lastTourismFetchLoc.current = { lat: rawLoc.lat, lng: rawLoc.lng };
       fetch(`/api/tourism?lat=${rawLoc.lat}&lng=${rawLoc.lng}&radius=${TOURISM_RADIUS_M}`)
-        .then(res => res.json() as Promise<ApiBody<{ items: TourismItem[] }>>)
+        .then(res => res.json() as Promise<ApiBody<TourismListDto>>)
         .then(body => {
           if (body.success && body.data.items.length > 0) {
             const randomItem = body.data.items[Math.floor(Math.random() * body.data.items.length)];

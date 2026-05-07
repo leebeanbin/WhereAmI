@@ -2,6 +2,8 @@ import { AppError } from '@/domain/exceptions/AppError';
 import { ApiResponse } from '@/lib/apiResponse';
 import { ErrorCode } from '@/constants/ResponseCodes';
 import { TRAIN_PAGE_SIZE, TAGO_TRAIN_BASE_URL } from '@/constants/api';
+import { TrainBuilder } from '@/application/builders/TrainBuilder';
+import type { TrainDto } from '@/application/dtos/TransportDto';
 
 /**
  * @swagger
@@ -21,7 +23,6 @@ import { TRAIN_PAGE_SIZE, TAGO_TRAIN_BASE_URL } from '@/constants/api';
  *         required: false
  *         schema:
  *           type: string
- *         description: 도착역 이름
  *       - in: query
  *         name: depPlandTime
  *         required: false
@@ -67,21 +68,10 @@ export async function GET(request: Request) {
     const body = await response.json();
     const items = body?.response?.body?.items?.item;
 
-    if (!items) return ApiResponse.ok([]);
+    if (!items) return ApiResponse.ok<TrainDto[]>([]);
 
-    const itemArray = Array.isArray(items) ? items : [items];
-    const trains = itemArray.map((item: any) => ({
-      trainNo: item.trainNo,
-      trainType: item.trainType,
-      trainTypeName: item.trainTypeName,
-      depPlaceName: item.depPlaceName,
-      arrPlaceName: item.arrPlaceName,
-      depPlandTime: item.depPlandTime,
-      arrPlandTime: item.arrPlandTime,
-      adultCharge: item.adultCharge,
-    }));
-
-    return ApiResponse.ok(trains);
+    const itemArray: Record<string, any>[] = Array.isArray(items) ? items : [items];
+    return ApiResponse.ok<TrainDto[]>(TrainBuilder.fromRawList(itemArray));
   } catch (error: any) {
     console.error('[Train API Error]', error);
     return ApiResponse.serverError(ErrorCode.API_TIMEOUT, error.message);
