@@ -42,10 +42,10 @@ export const useLocationStore = create<LocationState>((set) => ({
       route: [...state.route, point],
       emaSpeed: point.emaSpeedKmh
   })),
-  toggleTracking: () => set((state) => ({ 
+  toggleTracking: () => set((state) => ({
       isTracking: !state.isTracking,
-      // Optional: reset route on new tracking session
-      // route: !state.isTracking ? [] : state.route 
+      route: !state.isTracking ? [] : state.route,
+      nearbyStations: !state.isTracking ? [] : state.nearbyStations,
   })),
   setDetectedMode: (mode) => set({ detectedMode: mode }),
   setConfirmedMode: (mode) => set({ confirmedMode: mode, detectedMode: null }),
