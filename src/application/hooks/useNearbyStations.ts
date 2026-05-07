@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useLocationStore } from '../../store/useLocationStore';
 import { getDistanceFromLatLonInKm } from '../utils/geoUtils';
+import { STATION_REFETCH_DISTANCE_KM } from '../../constants/tracking';
 
 export function useNearbyStations() {
   const { currentLocation, nearbyStations, setNearbyStations } = useLocationStore();
@@ -16,7 +17,7 @@ export function useNearbyStations() {
         )
       : 999;
 
-    if (distFromLast < 0.5 && nearbyStations.length > 0) return;
+    if (distFromLast < STATION_REFETCH_DISTANCE_KM && nearbyStations.length > 0) return;
 
     lastFetchLoc.current = currentLocation;
 

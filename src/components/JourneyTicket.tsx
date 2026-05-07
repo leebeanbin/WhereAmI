@@ -3,6 +3,7 @@
 import { useLocationStore } from '@/store/useLocationStore';
 import { journeyRepository } from '@/infrastructure/repositories/FirebaseJourneyRepository';
 import { getDistanceFromLatLonInKm, formatDistance, formatDuration } from '@/application/utils/geoUtils';
+import { DEFAULT_USER_ID } from '@/constants/api';
 import { useEffect, useState, useMemo } from 'react';
 
 export default function JourneyTicket() {
@@ -43,7 +44,7 @@ export default function JourneyTicket() {
     if (!showTicketModal || route.length === 0 || saveComplete || isSaving) return;
 
     setIsSaving(true);
-    journeyRepository.saveFullJourney('anonymous', route, stats.totalDistanceKm, stats.durationSec)
+    journeyRepository.saveFullJourney(DEFAULT_USER_ID, route, stats.totalDistanceKm, stats.durationSec)
       .then((journey) => {
         setSaveComplete(true);
         setShareId(journey.shareId);

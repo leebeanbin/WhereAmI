@@ -1,3 +1,5 @@
+import { DEFAULT_CITY_CODE } from '../../constants/api';
+
 export const mapRegionToCityCode = (region1DepthName: string): string => {
   if (region1DepthName.includes('서울')) return '11';
   if (region1DepthName.includes('부산')) return '21';
@@ -17,5 +19,5 @@ export const mapRegionToCityCode = (region1DepthName: string): string => {
   if (region1DepthName.includes('경남') || region1DepthName.includes('경상남도')) return '38';
   if (region1DepthName.includes('제주')) return '39';
   
-  return '25'; // 매핑 실패 시 기본값 (대전)
+  return DEFAULT_CITY_CODE;
 };

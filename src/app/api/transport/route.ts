@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { TagoApiAdapter } from '@/infrastructure/adapters/TagoApiAdapter';
+import { DEFAULT_CITY_CODE } from '@/constants/api';
 
 /**
  * @swagger
@@ -42,7 +43,7 @@ import { TagoApiAdapter } from '@/infrastructure/adapters/TagoApiAdapter';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const stationId = searchParams.get('stationId');
-  const cityCode = searchParams.get('cityCode') || '25'; // 기본 대전
+  const cityCode = searchParams.get('cityCode') || DEFAULT_CITY_CODE;
 
   if (!stationId) {
     return NextResponse.json({ error: 'stationId 파라미터가 필요합니다.' }, { status: 400 });

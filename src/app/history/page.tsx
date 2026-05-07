@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Journey } from '@/domain/models/Journey';
 import { fetchJourneys } from '@/domain/queries/fetchJourneys';
 import { formatDistance, formatDuration } from '@/application/utils/geoUtils';
+import { DEFAULT_USER_ID } from '@/constants/api';
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString('ko-KR', {
@@ -69,7 +70,7 @@ export default function HistoryPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchJourneys('anonymous')
+    fetchJourneys(DEFAULT_USER_ID)
       .then(setJourneys)
       .catch((e) => {
         console.error(e);

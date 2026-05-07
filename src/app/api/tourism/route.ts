@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { TOURISM_PAGE_SIZE } from '@/constants/api';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
 
   try {
     // 한국관광공사_국문 관광정보 서비스_GW - 위치기반 관광정보 조회
-    const url = `http://apis.data.go.kr/B551011/KorService1/locationBasedList1?serviceKey=${apiKey}&numOfRows=10&pageNo=1&MobileOS=ETC&MobileApp=WhereAmI&_type=json&mapX=${lng}&mapY=${lat}&radius=${radius}`;
+    const url = `http://apis.data.go.kr/B551011/KorService1/locationBasedList1?serviceKey=${apiKey}&numOfRows=${TOURISM_PAGE_SIZE}&pageNo=1&MobileOS=ETC&MobileApp=WhereAmI&_type=json&mapX=${lng}&mapY=${lat}&radius=${radius}`;
     
     const response = await fetch(url);
     if (!response.ok) {

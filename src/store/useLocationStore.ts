@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { RoutePoint, TransportMode } from '../domain/models/Journey';
 import { StationInfo } from '../domain/interfaces/IPublicTransportAdapter';
+import { DEFAULT_CITY_CODE } from '../constants/api';
 
 export type { RoutePoint, TransportMode };
 
@@ -52,7 +53,7 @@ export const useLocationStore = create<LocationState>((set) => ({
   nearbyStations: [],
   selectedStation: null,
   showTicketModal: false,
-  cityCode: '25', // Default: 대전
+  cityCode: DEFAULT_CITY_CODE,
   tourismNews: null,
   toast: null,
   setNearbyStations: (stations) => set({ nearbyStations: stations }),

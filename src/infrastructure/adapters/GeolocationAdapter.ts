@@ -1,6 +1,7 @@
 import { ILocationAdapter } from '../../domain/interfaces/ILocationAdapter';
 import { AppError } from '../../domain/exceptions/AppError';
 import { ErrorCode } from '../../constants/ResponseCodes';
+import { GEO_MAXIMUM_AGE_MS, GEO_TIMEOUT_MS } from '../../constants/api';
 
 export class GeolocationAdapter implements ILocationAdapter {
   private watchId: number | null = null;
@@ -26,7 +27,7 @@ export class GeolocationAdapter implements ILocationAdapter {
         else if (err.code === err.TIMEOUT) onError(new AppError(ErrorCode.GPS_TIMEOUT));
         else onError(new AppError(ErrorCode.GPS_UNAVAILABLE));
       },
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 5000 }
+      { enableHighAccuracy: true, maximumAge: GEO_MAXIMUM_AGE_MS, timeout: GEO_TIMEOUT_MS }
     );
   }
 

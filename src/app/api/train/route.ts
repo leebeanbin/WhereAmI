@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { AppError } from '@/domain/exceptions/AppError';
 import { ErrorCode } from '@/constants/ResponseCodes';
+import { TRAIN_PAGE_SIZE } from '@/constants/api';
 
 const TAGO_TRAIN_BASE = 'http://apis.data.go.kr/1613000/TrainInfoService';
 
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
   try {
     const params = new URLSearchParams({
       serviceKey: apiKey,
-      numOfRows: '10',
+      numOfRows: String(TRAIN_PAGE_SIZE),
       pageNo: '1',
       _type: 'json',
       depPlaceName: depStationName,

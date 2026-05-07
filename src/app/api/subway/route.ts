@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { SUBWAY_PAGE_SIZE } from '@/constants/api';
 
 /**
  * @swagger
@@ -58,7 +59,7 @@ export async function GET(request: Request) {
 
   try {
     const encodedStation = encodeURIComponent(stationName);
-    const url = `http://swopenAPI.seoul.go.kr/api/subway/${apiKey}/json/realtimeStationArrival/0/10/${encodedStation}`;
+    const url = `http://swopenAPI.seoul.go.kr/api/subway/${apiKey}/json/realtimeStationArrival/0/${SUBWAY_PAGE_SIZE}/${encodedStation}`;
 
     const response = await fetch(url);
     if (!response.ok) {

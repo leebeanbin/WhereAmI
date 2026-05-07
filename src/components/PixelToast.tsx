@@ -2,15 +2,14 @@
 
 import { useEffect } from 'react';
 import { useLocationStore } from '@/store/useLocationStore';
-
-const AUTO_DISMISS_MS = 3500;
+import { TOAST_DISMISS_MS } from '@/constants/api';
 
 export default function PixelToast() {
   const { toast, setToast } = useLocationStore();
 
   useEffect(() => {
     if (!toast) return;
-    const timer = setTimeout(() => setToast(null), AUTO_DISMISS_MS);
+    const timer = setTimeout(() => setToast(null), TOAST_DISMISS_MS);
     return () => clearTimeout(timer);
   }, [toast, setToast]);
 
