@@ -5,4 +5,5 @@ export interface IJourneyRepository {
   saveRoutePoint(journeyId: string, point: RoutePoint): Promise<void>;
   getJourney(journeyId: string): Promise<Journey | null>;
   completeJourney(journeyId: string, totalDistanceKm: number, totalDurationSec: number): Promise<void>;
+  saveFullJourney(userId: string, route: RoutePoint[], totalDistanceKm: number, totalDurationSec: number): Promise<Journey>;
 }

@@ -6,8 +6,8 @@ export interface RoutePoint {
   time: number;
   speedKmh: number;
   emaSpeedKmh: number;
-  inferredMode: string | null;
-  confirmedMode: string | null;
+  inferredMode: TransportMode;
+  confirmedMode: TransportMode;
   stickerId?: string | null;
 }
 
