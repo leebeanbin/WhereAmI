@@ -4,17 +4,20 @@ import { Map, Polyline, MapMarker } from 'react-kakao-maps-sdk';
 import { useLocationStore } from '@/store/useLocationStore';
 import { TransportIconFactory } from '@/application/factories/TransportIconFactory';
 import { mapRegionToCityCode } from '@/application/utils/cityCodeMapper';
+import { useNearbyStations } from '@/application/hooks/useNearbyStations';
 import { useEffect, useState, useRef } from 'react';
 
 export default function MapComponent() {
-  const { 
+  const {
     currentLocation, route, confirmedMode,
-    nearbyStations, setNearbyStations,
+    nearbyStations,
     selectedStation, setSelectedStation,
     cityCode, setCityCode
   } = useLocationStore();
   const [isLoaded, setIsLoaded] = useState(false);
   const lastGeocodedLoc = useRef<{lat: number, lng: number} | null>(null);
+
+  useNearbyStations();
 
   useEffect(() => {
     // Kakao Map 스크립트 로드 완료 후 렌더링을 보장하기 위한 딜레이 또는 체크
@@ -27,18 +30,6 @@ export default function MapComponent() {
     }, 100);
     return () => clearInterval(checkKakao);
   }, []);
-
-  // 위치가 잡히면 1회 주변 정류장을 검색합니다. (실제 운영시엔 중심 좌표 이동 시마다 디바운스 요청)
-  useEffect(() => {
-    if (!currentLocation || nearbyStations.length > 0) return;
-
-    fetch(`/api/stations?lat=${currentLocation.lat}&lng=${currentLocation.lng}`)
-      .then(res => res.json())
-      .then(data => {
-         if (!data.error) setNearbyStations(data);
-      })
-      .catch(err => console.error(err));
-  }, [currentLocation, nearbyStations.length, setNearbyStations]);
 
   // Kakao Geocoder를 활용하여 위치 기반 cityCode 자동 갱신
   useEffect(() => {
