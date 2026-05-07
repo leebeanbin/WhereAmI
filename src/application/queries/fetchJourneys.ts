@@ -6,9 +6,9 @@ import {
   limit,
   where
 } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
-import { Journey } from '../models/Journey';
-import { DEFAULT_USER_ID, JOURNEYS_FETCH_LIMIT } from '../../constants/api';
+import { db } from '@/lib/firebase';
+import { Journey } from '@/domain/models/Journey';
+import { DEFAULT_USER_ID, JOURNEYS_FETCH_LIMIT } from '@/constants/api';
 
 export async function fetchJourneys(userId: string = DEFAULT_USER_ID, maxCount: number = JOURNEYS_FETCH_LIMIT): Promise<Journey[]> {
   const q = query(

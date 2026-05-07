@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Journey } from '@/domain/models/Journey';
-import { fetchJourneyByShareId } from '@/domain/queries/fetchJourneys';
+import { fetchJourneyByShareId } from '@/application/queries/fetchJourneys';
 import { formatDistance, formatDuration } from '@/application/utils/geoUtils';
 
 function formatDate(ts: number) {

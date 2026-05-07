@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Journey } from '@/domain/models/Journey';
-import { fetchJourneys } from '@/domain/queries/fetchJourneys';
+import { fetchJourneys } from '@/application/queries/fetchJourneys';
 import { formatDistance, formatDuration } from '@/application/utils/geoUtils';
 import { DEFAULT_USER_ID } from '@/constants/api';
 

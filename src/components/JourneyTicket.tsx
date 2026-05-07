@@ -1,13 +1,14 @@
 'use client';
 
 import { useLocationStore } from '@/store/useLocationStore';
-import { journeyRepository } from '@/infrastructure/repositories/FirebaseJourneyRepository';
+import { useSaveJourneyFacade } from '@/application/facades/useSaveJourneyFacade';
 import { getDistanceFromLatLonInKm, formatDistance, formatDuration } from '@/application/utils/geoUtils';
 import { DEFAULT_USER_ID } from '@/constants/api';
 import { useEffect, useState, useMemo } from 'react';
 
 export default function JourneyTicket() {
   const { showTicketModal, setShowTicketModal, route, setToast } = useLocationStore();
+  const { saveJourney } = useSaveJourneyFacade();
   const [isSaving, setIsSaving] = useState(false);
   const [saveComplete, setSaveComplete] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -44,7 +45,7 @@ export default function JourneyTicket() {
     if (!showTicketModal || route.length === 0 || saveComplete || isSaving) return;
 
     setIsSaving(true);
-    journeyRepository.saveFullJourney(DEFAULT_USER_ID, route, stats.totalDistanceKm, stats.durationSec)
+    saveJourney(DEFAULT_USER_ID, route, stats.totalDistanceKm, stats.durationSec)
       .then((journey) => {
         setSaveComplete(true);
         setShareId(journey.shareId);
