@@ -12,7 +12,7 @@ import { NextResponse } from 'next/server';
  *         required: true
  *         schema:
  *           type: string
- *         description: 지하철 역 이름 (예: 강남, 홍대입구)
+ *         description: "지하철 역 이름 (예: 강남, 홍대입구)"
  *     responses:
  *       200:
  *         description: 실시간 도착 정보 목록

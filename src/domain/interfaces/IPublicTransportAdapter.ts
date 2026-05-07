@@ -11,6 +11,7 @@ export interface StationInfo {
   lat: number;
   lng: number;
   distance?: number;
+  type?: 'bus' | 'subway';
 }
 
 /**

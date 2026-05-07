@@ -76,6 +76,7 @@ export class TagoApiAdapter implements IPublicTransportAdapter {
         stationName: item.nodenm,
         lat: item.gpslati,
         lng: item.gpslong,
+        type: 'bus' as const,
       }));
 
     } catch (error) {

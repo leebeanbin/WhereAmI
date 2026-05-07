@@ -16,7 +16,7 @@ const TAGO_TRAIN_BASE = 'http://apis.data.go.kr/1613000/TrainInfoService';
  *         required: true
  *         schema:
  *           type: string
- *         description: 출발역 이름 (예: 서울, 부산)
+ *         description: "출발역 이름 (예: 서울, 부산)"
  *       - in: query
  *         name: arrStationName
  *         required: false
