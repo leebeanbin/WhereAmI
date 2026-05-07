@@ -9,6 +9,7 @@ export default function JourneyTicket() {
   const { showTicketModal, setShowTicketModal, route, setToast } = useLocationStore();
   const [isSaving, setIsSaving] = useState(false);
   const [saveComplete, setSaveComplete] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [shareId, setShareId] = useState<string | null>(null);
 
   const stats = useMemo(() => {
@@ -47,7 +48,11 @@ export default function JourneyTicket() {
         setSaveComplete(true);
         setShareId(journey.shareId);
       })
-      .catch(err => console.error('저장 실패:', err))
+      .catch(err => {
+        console.error('저장 실패:', err);
+        setSaveFailed(true);
+        setToast({ message: '저장에 실패했습니다. 네트워크를 확인해주세요. 💦', type: 'error' });
+      })
       .finally(() => setIsSaving(false));
   }, [showTicketModal, route, saveComplete, isSaving, stats.totalDistanceKm, stats.durationSec]);
 
@@ -65,6 +70,7 @@ export default function JourneyTicket() {
   const handleClose = () => {
     setShowTicketModal(false);
     setSaveComplete(false);
+    setSaveFailed(false);
     setShareId(null);
   };
 
@@ -119,9 +125,11 @@ export default function JourneyTicket() {
         <div className="mt-6 pt-4 border-t-2 border-dashed border-gray-300 text-center">
           {isSaving ? (
             <p className="text-xs text-blue-500 mb-4 animate-pulse">☁️ 클라우드에 기록 중...</p>
-          ) : (
+          ) : saveFailed ? (
+            <p className="text-xs text-red-500 mb-4 font-bold">💦 저장에 실패했습니다.</p>
+          ) : saveComplete ? (
             <p className="text-xs text-green-600 mb-4 font-bold">✨ 모험이 안전하게 기록되었습니다!</p>
-          )}
+          ) : null}
 
           {saveComplete && shareId && (
             <button onClick={handleShare} className="nes-btn is-primary w-full mb-3 text-sm">
