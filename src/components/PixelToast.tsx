@@ -19,7 +19,7 @@ export default function PixelToast() {
   const isError = toast.type === 'error';
 
   return (
-    <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[90] w-11/12 max-w-xs animate-slide-up pointer-events-none">
+    <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[110] w-11/12 max-w-xs animate-slide-up pointer-events-none">
       <div className={`nes-container is-rounded font-neodgm shadow-[4px_4px_0_0_rgba(0,0,0,1)] border-4 !py-2 !px-3 ${
         isError
           ? 'bg-red-50 border-red-500 text-red-700'

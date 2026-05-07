@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Journey } from '@/domain/models/Journey';
 import { fetchJourneys } from '@/domain/queries/fetchJourneys';
+import { formatDistance, formatDuration } from '@/application/utils/geoUtils';
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString('ko-KR', {
@@ -12,24 +13,13 @@ function formatDate(ts: number) {
   });
 }
 
-function formatDuration(sec: number) {
-  const m = Math.floor(sec / 60);
-  const h = Math.floor(m / 60);
-  if (h > 0) return `${h}시간 ${m % 60}분`;
-  return `${m}분 ${Math.floor(sec % 60)}초`;
-}
-
-function formatDist(km: number) {
-  if (km < 1) return `${Math.round(km * 1000)}m`;
-  return `${km.toFixed(2)}km`;
-}
 
 // 여정 카드 한 장
 function JourneyCard({ journey, index }: { journey: Journey; index: number }) {
   const emoji = ['🚀', '🌟', '🎯', '🗺️', '🌈', '⚡', '🎪', '🏆'][index % 8];
   const startDate = formatDate(journey.startTime);
   const duration = formatDuration(journey.totalDurationSec);
-  const dist = formatDist(journey.totalDistanceKm);
+  const dist = formatDistance(journey.totalDistanceKm);
 
   return (
     <div className="nes-container is-rounded bg-white border-2 border-black animate-pixel-in"
@@ -112,7 +102,7 @@ export default function HistoryPage() {
             <div>
               <p className="text-[9px] text-gray-400 uppercase mb-1">Total Dist</p>
               <p className="text-lg text-cyan-300">
-                {formatDist(journeys.reduce((s, j) => s + j.totalDistanceKm, 0))}
+                {formatDistance(journeys.reduce((s, j) => s + j.totalDistanceKm, 0))}
               </p>
             </div>
             <div>

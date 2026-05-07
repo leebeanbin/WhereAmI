@@ -50,6 +50,15 @@
   animation: pixel-fade-in 0.3s ease-out forwards;
 }
 
+.pixel-btn {
+  image-rendering: pixelated;
+  cursor: pointer;
+  transition: transform 0.05s;
+}
+.pixel-btn:active {
+  transform: translate(2px, 2px);
+}
+
 /* 레트로 스캔라인 오버레이 */
 .scanlines::after {
   content: '';

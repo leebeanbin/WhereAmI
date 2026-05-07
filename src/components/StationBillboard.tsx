@@ -51,8 +51,7 @@ export default function StationBillboard() {
   if (!selectedStation) return null;
 
   const handleCheckIn = () => {
-    setToast({ message: `[${selectedStation.stationName}] 체크인 완료! 📝`, type: 'success' });
-    // TODO: Firestore에 이벤트 추가 로직 연동
+    setToast({ message: '체크인 기능은 곧 추가됩니다! 🚧', type: 'error' });
   };
 
   return (
