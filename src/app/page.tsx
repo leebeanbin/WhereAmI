@@ -1,7 +1,9 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useLocationStore } from '@/store/useLocationStore';
 import { useTrackingFacade } from '@/application/facades/useTrackingFacade';
+import { GeolocationAdapter } from '@/infrastructure/adapters/GeolocationAdapter';
 import { TransportIconFactory } from '@/application/factories/TransportIconFactory';
 import StationBillboard from '@/components/StationBillboard';
 import JourneyTicket from '@/components/JourneyTicket';
@@ -16,8 +18,8 @@ const MapComponent = dynamic(() => import('@/components/MapComponent'), { ssr: f
 export default function Home() {
   const { currentLocation, route, isTracking, detectedMode, confirmedMode, emaSpeed, setDetectedMode, setConfirmedMode } = useLocationStore();
   
-  // Facade 훅 사용: UI 컴포넌트는 GPS나 수학 공식을 전혀 모르며 오직 오케스트레이션 훅만 호출합니다. (단일 책임 원칙)
-  const { startTracking, stopTracking } = useTrackingFacade();
+  const locationAdapter = useMemo(() => new GeolocationAdapter(), []);
+  const { startTracking, stopTracking } = useTrackingFacade(locationAdapter);
 
   return (
     <main className="flex flex-col h-screen w-full bg-[#e0e8e0] text-[#212529] font-neodgm p-4 overflow-hidden relative">

@@ -84,7 +84,7 @@ export default function MapComponent() {
           key={station.stationId}
           position={{ lat: station.lat, lng: station.lng }}
           image={{
-            src: TransportIconFactory.getStationMarkerPath(station.type ?? 'bus'),
+            src: TransportIconFactory.getStationMarkerPath(station.type),
             size: { width: STATION_MARKER_SIZE, height: STATION_MARKER_SIZE },
             options: { offset: { x: STATION_MARKER_SIZE / 2, y: STATION_MARKER_SIZE } },
           }}

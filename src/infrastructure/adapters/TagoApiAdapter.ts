@@ -7,6 +7,8 @@ import {
   TAGO_STATION_PAGE_SIZE,
   TAGO_BUS_ARRIVAL_BASE_URL,
   TAGO_BUS_STATION_BASE_URL,
+  TAGO_UNKNOWN_VEHICLE,
+  TAGO_UNKNOWN_STOP,
 } from '../../constants/api';
 
 export class TagoApiAdapter implements IPublicTransportAdapter {
@@ -31,10 +33,10 @@ export class TagoApiAdapter implements IPublicTransportAdapter {
 
       const itemArray = Array.isArray(items) ? items : [items];
       return itemArray.map((item: any) => ({
-        vehicleId: item.vehicleno || '차량번호 미상',
+        vehicleId: item.vehicleno || TAGO_UNKNOWN_VEHICLE,
         lineNo: item.routeno,
         estimatedArrivalTime: new Date(Date.now() + item.arrtime * 1000),
-        currentStop: item.nodenm || '알 수 없음',
+        currentStop: item.nodenm || TAGO_UNKNOWN_STOP,
       }));
     } catch (error) {
       if (error instanceof AppError) throw error;

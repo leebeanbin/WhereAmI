@@ -1,6 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useLocationStore } from '../../store/useLocationStore';
-import { GeolocationAdapter } from '../../infrastructure/adapters/GeolocationAdapter';
 import { GlobalExceptionHandler } from '../handlers/GlobalExceptionHandler';
 import { GlobalSuccessHandler } from '../handlers/GlobalSuccessHandler';
 import { SuccessCode } from '../../constants/ResponseCodes';
@@ -19,16 +18,14 @@ import { MS_PER_HOUR, FORCE_REFETCH_SENTINEL_KM } from '../../constants/math';
 import type { ApiBody } from '../../lib/apiResponse';
 import type { TourismListDto } from '../dtos/TourismDto';
 
-// 플랫폼 어댑터를 주입받을 수 있도록 설계.
-// 미전달 시 웹 기본값(navigator.geolocation)을 사용.
-export function useTrackingFacade(locationAdapter?: ILocationAdapter) {
+export function useTrackingFacade(locationAdapter: ILocationAdapter) {
   const {
     isTracking, toggleTracking, setCurrentLocation, addRoutePoint,
     confirmedMode, detectedMode, setDetectedMode, setShowTicketModal,
     setTourismNews,
   } = useLocationStore();
 
-  const adapterRef = useRef<ILocationAdapter>(locationAdapter ?? new GeolocationAdapter());
+  const adapterRef = useRef<ILocationAdapter>(locationAdapter);
   const prevLocRef = useRef<RoutePoint | null>(null);
   const lastTourismFetchLoc = useRef<{ lat: number; lng: number } | null>(null);
 
@@ -121,7 +118,7 @@ export function useTrackingFacade(locationAdapter?: ILocationAdapter) {
 
   useEffect(() => {
     const adapter = adapterRef.current;
-    adapter.startTracking(processNewLocation, (err) => GlobalExceptionHandler.handle(err));
+    void adapter.startTracking(processNewLocation, (err) => GlobalExceptionHandler.handle(err));
     return () => adapter.stopTracking();
   }, [processNewLocation]);
 

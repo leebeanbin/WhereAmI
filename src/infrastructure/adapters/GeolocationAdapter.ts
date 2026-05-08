@@ -6,7 +6,7 @@ import { GEO_MAXIMUM_AGE_MS, GEO_TIMEOUT_MS } from '../../constants/api';
 export class GeolocationAdapter implements ILocationAdapter {
   private watchId: number | null = null;
 
-  startTracking(onUpdate: (data: {lat: number, lng: number, time: number}) => void, onError: (err: Error) => void) {
+  async startTracking(onUpdate: (data: {lat: number, lng: number, time: number}) => void, onError: (err: Error) => void): Promise<void> {
     if (!('geolocation' in navigator)) {
       // 하드코딩된 문자열 대신 Enum 기반의 Custom AppError 던짐
       onError(new AppError(ErrorCode.GPS_UNAVAILABLE));
