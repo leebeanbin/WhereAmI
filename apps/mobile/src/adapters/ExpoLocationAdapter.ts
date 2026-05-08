@@ -10,12 +10,15 @@ import { ILocationAdapter, AppError, ErrorCode } from '@whereami/core';
  */
 export class ExpoLocationAdapter implements ILocationAdapter {
   private subscription: Location.LocationSubscription | null = null;
+  private stopped = false;
 
   async startTracking(
     onUpdate: (data: { lat: number; lng: number; time: number }) => void,
     onError: (err: Error) => void,
   ): Promise<void> {
+    this.stopped = false;
     const { status } = await Location.requestForegroundPermissionsAsync();
+    if (this.stopped) return;
     if (status !== 'granted') {
       onError(new AppError(ErrorCode.GPS_DENIED));
       return;
@@ -38,6 +41,7 @@ export class ExpoLocationAdapter implements ILocationAdapter {
   }
 
   stopTracking(): void {
+    this.stopped = true;
     this.subscription?.remove();
     this.subscription = null;
   }

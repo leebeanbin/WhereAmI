@@ -7,6 +7,8 @@ import {
   TransportIconFactory,
   ILocationAdapter,
 } from '@whereami/core';
+import { JourneyReceiptModal } from '@/components/JourneyReceiptModal';
+import { TransportModeModal } from '@/components/TransportModeModal';
 
 const POLYLINE_COLORS: Record<string, string> = {
   walk: '#00FF00',
@@ -20,7 +22,10 @@ interface Props {
 
 export function TrackingScreen({ geolocationAdapter }: Props) {
   const { startTracking, stopTracking } = useTrackingFacade(geolocationAdapter);
-  const { currentLocation, route, isTracking, emaSpeed, confirmedMode } = useLocationStore();
+  const {
+    currentLocation, route, isTracking, emaSpeed,
+    confirmedMode, setDetectedMode,
+  } = useLocationStore();
 
   const modeText = TransportIconFactory.getModeText(confirmedMode);
 
@@ -51,10 +56,23 @@ export function TrackingScreen({ geolocationAdapter }: Props) {
         </View>
       )}
 
+      {/* 속도/수단 HUD */}
       <View style={styles.hud}>
         <Text style={styles.modeText}>{modeText}</Text>
         <Text style={styles.speedText}>{emaSpeed.toFixed(1)} km/h</Text>
       </View>
+
+      {/* 개발용 MOCK 버튼 */}
+      {__DEV__ && (
+        <View style={styles.mockRow}>
+          <TouchableOpacity style={styles.mockBtn} onPress={() => setDetectedMode('bus')}>
+            <Text style={styles.mockBtnText}>[MOCK:버스]</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.mockBtn} onPress={() => setDetectedMode('train')}>
+            <Text style={styles.mockBtnText}>[MOCK:기차]</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <TouchableOpacity
         style={[styles.btn, isTracking ? styles.btnStop : styles.btnStart]}
@@ -64,6 +82,9 @@ export function TrackingScreen({ geolocationAdapter }: Props) {
           {isTracking ? '■ 모험 종료' : '▶ 모험 시작'}
         </Text>
       </TouchableOpacity>
+
+      <JourneyReceiptModal />
+      <TransportModeModal />
     </SafeAreaView>
   );
 }
@@ -84,6 +105,21 @@ const styles = StyleSheet.create({
   },
   modeText: { fontFamily: 'monospace', fontSize: 12 },
   speedText: { fontFamily: 'monospace', fontSize: 20, color: '#e00' },
+  mockRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
+  mockBtn: {
+    backgroundColor: '#f6c90e',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderWidth: 2,
+    borderColor: 'black',
+  },
+  mockBtnText: { fontFamily: 'monospace', fontSize: 10, fontWeight: 'bold' },
   btn: {
     margin: 16,
     padding: 18,

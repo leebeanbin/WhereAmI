@@ -9,7 +9,8 @@
       "@/adapters/*": ["./src/adapters/*"],
       "@/screens/*": ["./src/screens/*"],
       "@/components/*": ["./src/components/*"],
-      "@/navigation/*": ["./src/navigation/*"]
+      "@/navigation/*": ["./src/navigation/*"],
+      "@/constants": ["./src/constants.ts"]
     }
   }
 }
