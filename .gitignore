@@ -1,8 +1,6 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
+# ─── Dependencies ────────────────────────────────────────────────────────────
+node_modules/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -10,35 +8,67 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# ─── Next.js ─────────────────────────────────────────────────────────────────
+.next/
+out/
+next-env.d.ts
 
-# next.js
-/.next/
-/out/
+# ─── Expo / React Native ─────────────────────────────────────────────────────
+.expo/
+# Expo managed workflow generates these — check in only if you eject
+android/
+ios/
+# Expo Router generated types
+expo-env.d.ts
 
-# production
-/build
+# ─── iOS / Xcode ─────────────────────────────────────────────────────────────
+*.xcuserstate
+xcuserdata/
+DerivedData/
+*.xcbkptlist
+# Apple signing & distribution
+*.p8
+*.p12
+*.cer
+*.mobileprovision
 
-# misc
-.DS_Store
-*.pem
+# ─── Android ─────────────────────────────────────────────────────────────────
+*.keystore
+*.jks
 
-# debug
+# ─── Firebase config files (contain project credentials) ─────────────────────
+google-services.json
+GoogleService-Info.plist
+
+# ─── Environment / secrets ───────────────────────────────────────────────────
+.env
+.env.*
+!.env.local.example
+
+# ─── Build output ────────────────────────────────────────────────────────────
+build/
+dist/
+coverage/
+
+# ─── TypeScript ──────────────────────────────────────────────────────────────
+*.tsbuildinfo
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# ─── OS / Editor ─────────────────────────────────────────────────────────────
+.DS_Store
+**/.DS_Store
+Thumbs.db
+.vscode/settings.json
+.idea/
 
-# contains API keys and tokens from research session
-Researching Korean Public APIs.md
-
-# vercel
+# ─── Deployment ──────────────────────────────────────────────────────────────
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# ─── Research notes with API keys ────────────────────────────────────────────
+Researching Korean Public APIs.md
