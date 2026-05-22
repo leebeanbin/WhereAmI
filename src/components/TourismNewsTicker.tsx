@@ -33,22 +33,24 @@ export default function TourismNewsTicker() {
   if (!newsToRender) return null;
 
   return (
-    <div 
-      className={`fixed top-6 left-0 right-0 mx-auto z-[100] w-11/12 max-w-md ${isExiting ? 'animate-slide-down-out' : 'animate-slide-down'} cursor-pointer`}
-      onClick={() => setTourismNews(null)}
-      title="클릭하면 닫힘"
-    >
+    <div className="fixed top-6 inset-x-0 z-[100] flex justify-center pointer-events-none">
       <div 
-        className="nes-container is-rounded bg-retro-cream border-retro-thick shadow-[4px_4px_0_0_rgba(0,0,0,1)] p-3 hover:opacity-95 transition-opacity duration-150"
-        style={{ backgroundColor: '#fbfbf5' }}
+        className={`w-11/12 max-w-md pointer-events-auto ${isExiting ? 'animate-slide-down-out' : 'animate-slide-down'} cursor-pointer`}
+        onClick={() => setTourismNews(null)}
+        title="클릭하면 닫힘"
       >
-        <div className="flex items-center gap-3">
-          <img src="/icons/compass_icon.png" className="w-8 h-8 pixelated shrink-0 animate-bounce" alt="alert" />
-          <div className="flex-1">
-            <h4 className="text-retro-body-bold text-retro-red mb-1">[주변 명소 속보]</h4>
-            <p className="text-retro-body text-retro-dark leading-tight">
-              앗! 방금 <span className="text-retro-wood font-bold">'{newsToRender.title}'</span> 근처(<span className="text-retro-green font-bold">{newsToRender.distance}m</span>)를 지나셨네요! 멋진 곳이랍니다.
-            </p>
+        <div 
+          className="nes-container is-rounded bg-retro-cream border-retro-thick shadow-[4px_4px_0_0_rgba(0,0,0,1)] p-3 hover:opacity-95 transition-opacity duration-150"
+          style={{ backgroundColor: '#fbfbf5' }}
+        >
+          <div className="flex items-center gap-3">
+            <img src="/icons/compass_icon.png" className="w-8 h-8 pixelated shrink-0 animate-bounce" alt="alert" />
+            <div className="flex-1">
+              <h4 className="text-retro-body-bold text-retro-red mb-1">[주변 명소 속보]</h4>
+              <p className="text-retro-body text-retro-dark leading-tight">
+                앗! 방금 <span className="text-retro-wood font-bold">'{newsToRender.title}'</span> 근처(<span className="text-retro-green font-bold">{newsToRender.distance}m</span>)를 지나셨네요! 멋진 곳이랍니다.
+              </p>
+            </div>
           </div>
         </div>
       </div>
