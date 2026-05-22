@@ -33,9 +33,9 @@ export default function TourismNewsTicker() {
   if (!newsToRender) return null;
 
   return (
-    <div className="fixed top-6 inset-x-0 z-[100] flex justify-center pointer-events-none">
-      <div 
-        className={`w-11/12 max-w-md pointer-events-auto ${isExiting ? 'animate-slide-down-out' : 'animate-slide-down'} cursor-pointer`}
+    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-11/12 max-w-md pointer-events-none">
+      <div
+        className={`pointer-events-auto ${isExiting ? 'animate-slide-down-out' : 'animate-slide-down'} cursor-pointer`}
         onClick={() => setTourismNews(null)}
         title="클릭하면 닫힘"
       >

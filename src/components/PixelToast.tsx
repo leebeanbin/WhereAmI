@@ -34,9 +34,9 @@ export default function PixelToast() {
   const isError = toastToRender.type === 'error';
 
   return (
-    <div className="fixed top-4 inset-x-0 z-[120] flex justify-center pointer-events-none">
-      <div 
-        className={`w-11/12 max-w-xs pointer-events-auto ${isExiting ? 'animate-slide-down-out' : 'animate-slide-down'} cursor-pointer`}
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[120] w-11/12 max-w-xs pointer-events-none">
+      <div
+        className={`pointer-events-auto ${isExiting ? 'animate-slide-down-out' : 'animate-slide-down'} cursor-pointer`}
         onClick={() => setToast(null)}
         title="클릭하면 닫힘"
       >
