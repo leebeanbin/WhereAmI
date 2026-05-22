@@ -11,6 +11,15 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-neodgm: "NeoDunggeunmo", monospace;
+  
+  /* 8-BIT FOREST RPG DESIGN TOKENS */
+  --color-retro-cream: #fbfbf5;
+  --color-retro-moss: #f0f7f0;
+  --color-retro-green: #2d6a4f;
+  --color-retro-wood: #b07d30;
+  --color-retro-dark: #1b4332;
+  --color-retro-gray: #6c757d;
+  --color-retro-red: #e63946;
 }
 
 .pixel-art {
@@ -22,44 +31,155 @@
   image-rendering: crisp-edges;
 }
 
+/* ===================== */
+/*  등장 애니메이션        */
+/* ===================== */
+
 @keyframes slide-down {
-  from { opacity: 0; transform: translate(-50%, -120%); }
-  to   { opacity: 1; transform: translate(-50%, 0); }
+  from { opacity: 0; transform: translateY(-130%); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(100%); }
+  from { opacity: 0; transform: translateY(110%); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes pixel-fade-in {
-  0%   { opacity: 0; transform: scale(0.95); }
-  60%  { opacity: 1; transform: scale(1.02); }
+  0%   { opacity: 0; transform: scale(0.93); }
+  60%  { opacity: 1; transform: scale(1.03); }
   100% { opacity: 1; transform: scale(1); }
 }
 
+/* 이동수단 변경 팝업 - bounce 대신 세련된 pop-in */
+@keyframes pop-in {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+  65%  { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+  80%  { transform: translate(-50%, -50%) scale(0.97); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* HUD 속도 패널 등장 */
+@keyframes fade-slide-left {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ===================== */
+/*  퇴장 애니메이션        */
+/* ===================== */
+
+@keyframes slide-up-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(110%); }
+}
+
+@keyframes slide-down-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-130%); }
+}
+
+@keyframes slide-up-toast {
+  from { opacity: 0; transform: translate(-50%, 110%); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes slide-up-toast-out {
+  from { opacity: 1; transform: translate(-50%, 0); }
+  to   { opacity: 0; transform: translate(-50%, 110%); }
+}
+
+@keyframes fade-slide-right-out {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(20px); }
+}
+
+@keyframes pixel-fade-out {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.9); }
+}
+
+/* ===================== */
+/*  탭 컨텐츠 전환         */
+/* ===================== */
+@keyframes tab-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===================== */
+/*  유틸리티 클래스        */
+/* ===================== */
+
 .animate-slide-down {
-  animation: slide-down 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: slide-down 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-slide-down-out {
+  animation: slide-down-out 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 .animate-slide-up {
-  animation: slide-up 0.3s ease-out forwards;
+  animation: slide-up 0.35s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+.animate-slide-up-out {
+  animation: slide-up-out 0.35s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+.animate-slide-up-toast {
+  animation: slide-up-toast 0.35s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+.animate-slide-up-toast-out {
+  animation: slide-up-toast-out 0.35s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
 
 .animate-pixel-in {
-  animation: pixel-fade-in 0.3s ease-out forwards;
+  animation: pixel-fade-in 0.3s ease-out both;
 }
+
+.animate-pixel-out {
+  animation: pixel-fade-out 0.3s ease-in both;
+}
+
+.animate-pop-in {
+  animation: pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-fade-slide-left {
+  animation: fade-slide-left 0.3s ease-out both;
+}
+
+.animate-fade-slide-right-out {
+  animation: fade-slide-right-out 0.3s ease-in both;
+}
+
+.animate-tab-fade {
+  animation: tab-fade-in 0.2s ease-out both;
+}
+
+/* ===================== */
+/*  버튼 공통              */
+/* ===================== */
 
 .pixel-btn {
   image-rendering: pixelated;
   cursor: pointer;
-  transition: transform 0.05s;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 .pixel-btn:active {
   transform: translate(2px, 2px);
 }
 
-/* 레트로 스캔라인 오버레이 */
+/* nes-btn 눌림 효과 부드럽게 */
+.nes-btn {
+  transition: transform 0.08s ease, box-shadow 0.08s ease !important;
+}
+
+/* ===================== */
+/*  레트로 스캔라인        */
+/* ===================== */
 .scanlines::after {
   content: '';
   position: absolute;
@@ -74,6 +194,17 @@
   pointer-events: none;
 }
 
+/* ===================== */
+/*  GPS 점멸 도트          */
+/* ===================== */
+@keyframes gps-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+.animate-gps-blink {
+  animation: gps-blink 1s ease-in-out infinite;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -82,7 +213,130 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #e4ebe4;
+  color: #212529;
   font-family: "NeoDunggeunmo", monospace;
 }
+
+/* ===================== */
+/*  아케이드 네온 로고    */
+/* ===================== */
+@keyframes forest-glow {
+  0%, 100% {
+    text-shadow: 
+      2px 2px 0px #1b4332,
+      4px 4px 0px #c7f9cc;
+    color: #2d6a4f;
+  }
+  50% {
+    text-shadow: 
+      2px 2px 0px #704010,
+      4px 4px 0px #fcefb4;
+    color: #b07d30;
+  }
+}
+
+.retro-arcade-logo {
+  animation: forest-glow 3s ease-in-out infinite;
+  letter-spacing: 2px;
+}
+
+/* 퀘스트 완료 반짝임 */
+@keyframes quest-pulse {
+  0%, 100% {
+    border-color: #2d6a4f;
+    box-shadow: 0 0 5px rgba(45, 106, 79, 0.4);
+  }
+  50% {
+    border-color: #b07d30;
+    box-shadow: 0 0 15px rgba(176, 125, 48, 0.7);
+  }
+}
+.quest-board-active {
+  animation: quest-pulse 2.5s ease-in-out infinite;
+}
+
+/* ========================================================================== */
+/*  8-BIT FOREST RPG DESIGN TOKENS                                            */
+/* ========================================================================== */
+
+/* 1. 색상 테마 클래스 (Forest & Wood) */
+.text-retro-green {
+  color: #2d6a4f !important; /* 숲의 모험 메인 초록 */
+}
+.text-retro-wood {
+  color: #b07d30 !important; /* 나무/황금색 하이라이트 */
+}
+.text-retro-dark {
+  color: #1b4332 !important; /* 진하고 가독성이 높은 본문용 초록 */
+}
+.text-retro-gray {
+  color: #6c757d !important; /* 설명용 연한 회색 */
+}
+.text-retro-red {
+  color: #e63946 !important; /* 정지/경고/최고속도용 빨간색 */
+}
+
+/* 2. 배경 및 테두리 (Geometry Theme) */
+.bg-retro-cream {
+  background-color: #fbfbf5 !important; /* 대형 용지/패널 배경색 */
+}
+.bg-retro-moss {
+  background-color: #f0f7f0 !important; /* 내부 요약 상자/세부정보 배경색 */
+}
+.border-retro-thick {
+  border: 4px solid #000000 !important; /* 메인 컨테이너용 굵은 레트로 테두리 */
+}
+.border-retro-thin {
+  border: 2px solid #000000 !important; /* 세부 아이템/카드용 얇은 레트로 테두리 */
+}
+
+/* 3. 타이포그래피 계층 (Standard Typography Scale) */
+.text-retro-title-lg {
+  font-size: 1.75rem !important; /* ~28px - 영수증 모달 대형 로고 */
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+}
+.text-retro-title-md {
+  font-size: 1.25rem !important; /* ~20px - 일반 페이지/팝업 헤더 */
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+}
+.text-retro-subtitle {
+  font-size: 0.875rem !important; /* ~14px - 서브헤더 및 카드 제목 */
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+}
+.text-retro-body-bold {
+  font-size: 0.75rem !important; /* ~12px - 수치 정보 및 굵은 라벨 */
+  font-weight: 700 !important;
+}
+.text-retro-body {
+  font-size: 0.75rem !important; /* ~12px - 일반 설명 본문 */
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+}
+.text-retro-caption-bold {
+  font-size: 0.625rem !important; /* ~10px - 뱃지 및 메트릭 소제목 */
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+}
+.text-retro-caption {
+  font-size: 0.625rem !important; /* ~10px - 설명 힌트 및 날짜 */
+  font-weight: 400 !important;
+}
+.text-retro-tiny {
+  font-size: 0.5625rem !important; /* ~9px - 극소 정보/마크 */
+  font-weight: 400 !important;
+}
+
+/* ===================== */
+/*  카카오 맵 레트로 필터   */
+/* ===================== */
+.retro-map-filter img {
+  image-rendering: pixelated;
+  filter: sepia(0.25) hue-rotate(75deg) saturate(1.4) contrast(1.1) brightness(0.95) !important;
+}
+
+
+

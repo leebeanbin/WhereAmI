@@ -76,7 +76,7 @@ export default function MapComponent() {
       center={currentLocation}
       style={{ width: '100%', height: '100%', borderRadius: '8px' }}
       level={MAP_ZOOM_LEVEL}
-      className="border-4 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]"
+      className="border-4 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] retro-map-filter"
       onClick={() => setSelectedStation(null)}
     >
       {nearbyStations.map((station) => (
