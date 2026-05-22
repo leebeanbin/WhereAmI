@@ -1,11 +1,27 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocationStore } from '@/store/useLocationStore';
 import { TOAST_DISMISS_MS } from '@/constants/api';
 
 export default function PixelToast() {
   const { toast, setToast } = useLocationStore();
+  const [toastToRender, setToastToRender] = useState(toast);
+  const [isExiting, setIsExiting] = useState(false);
+
+  useEffect(() => {
+    if (toast) {
+      setToastToRender(toast);
+      setIsExiting(false);
+    } else if (toastToRender) {
+      setIsExiting(true);
+      const timer = setTimeout(() => {
+        setToastToRender(null);
+        setIsExiting(false);
+      }, 350); // slide-up-toast-out 지속 시간과 일치
+      return () => clearTimeout(timer);
+    }
+  }, [toast, toastToRender]);
 
   useEffect(() => {
     if (!toast) return;
@@ -13,20 +29,29 @@ export default function PixelToast() {
     return () => clearTimeout(timer);
   }, [toast, setToast]);
 
-  if (!toast) return null;
+  if (!toastToRender) return null;
 
-  const isError = toast.type === 'error';
+  const isError = toastToRender.type === 'error';
 
   return (
-    <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[110] w-11/12 max-w-xs animate-slide-up pointer-events-none">
-      <div className={`nes-container is-rounded font-neodgm shadow-[4px_4px_0_0_rgba(0,0,0,1)] border-4 !py-2 !px-3 ${
-        isError
-          ? 'bg-red-50 border-red-500 text-red-700'
-          : 'bg-green-50 border-green-500 text-green-700'
-      }`}>
+    <div 
+      className={`fixed top-4 left-0 right-0 mx-auto z-[120] w-11/12 max-w-xs ${isExiting ? 'animate-slide-down-out' : 'animate-slide-down'} cursor-pointer`}
+      onClick={() => setToast(null)}
+      title="클릭하면 닫힘"
+    >
+      <div 
+        className={`nes-container is-rounded bg-retro-cream border-retro-thin shadow-[4px_4px_0_0_rgba(0,0,0,1)] !py-2 !px-3 hover:opacity-90 transition-opacity duration-150 ${
+          isError ? 'text-retro-red' : 'text-retro-green'
+        }`}
+        style={{ backgroundColor: '#fbfbf5' }}
+      >
         <div className="flex items-center gap-2">
-          <span className="text-lg leading-none">{isError ? '💦' : '✨'}</span>
-          <p className="text-xs leading-snug">{toast.message}</p>
+          {isError ? (
+            <img src="/icons/stop_icon.png" className="w-4 h-4 pixelated shrink-0" alt="error" />
+          ) : (
+            <img src="/icons/tree_hud.png" className="w-4 h-4 pixelated shrink-0 animate-bounce" alt="success" />
+          )}
+          <p className="text-retro-body-bold leading-snug">{toastToRender.message}</p>
         </div>
       </div>
     </div>
