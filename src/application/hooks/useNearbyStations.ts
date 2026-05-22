@@ -25,8 +25,17 @@ export function useNearbyStations() {
     lastFetchLoc.current = currentLocation;
 
     fetch(`/api/stations?lat=${currentLocation.lat}&lng=${currentLocation.lng}`)
-      .then(res => res.json() as Promise<ApiBody<StationInfo[]>>)
-      .then(body => { if (body.success) setNearbyStations(body.data); })
+      .then(res => res.json() as Promise<ApiBody<any>>)
+      .then(body => {
+        if (body.success) {
+          const resData = body.data;
+          if (Array.isArray(resData)) {
+            setNearbyStations(resData);
+          } else {
+            setNearbyStations(resData.items || []);
+          }
+        }
+      })
       .catch(err => console.error('[Stations]', err));
   }, [currentLocation, nearbyStations.length, setNearbyStations]);
 }

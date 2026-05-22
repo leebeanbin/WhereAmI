@@ -15,4 +15,9 @@ export interface JourneyStatsDto {
   totalDistanceKm: number;
   totalDurationSec: number;
   journeyCount: number;
+  activeSession?: {
+    isTracking: boolean;
+    speedKmh: number;
+    mode: string;
+  };
 }

@@ -29,7 +29,7 @@ export enum SuccessCode {
 }
 
 export const ErrorMessages: Record<ErrorCode, string> = {
-  [ErrorCode.UNKNOWN_ERROR]: '앗! 알 수 없는 에러가 발생했어요. 💦',
+  [ErrorCode.UNKNOWN_ERROR]: '앗! 알 수 없는 에러가 발생했습니다.',
   [ErrorCode.NETWORK_ERROR]: '네트워크 연결이 불안정합니다.',
   [ErrorCode.GPS_DENIED]: '위치 정보 접근 권한이 거부되었습니다.',
   [ErrorCode.GPS_UNAVAILABLE]: '기기에서 위치 정보를 가져올 수 없습니다.',
@@ -41,7 +41,7 @@ export const ErrorMessages: Record<ErrorCode, string> = {
 };
 
 export const SuccessMessages: Record<SuccessCode, string> = {
-  [SuccessCode.JOURNEY_STARTED]: '모험이 시작되었습니다! 🚀',
-  [SuccessCode.JOURNEY_SAVED]: '모험 기록이 안전하게 저장되었습니다! 💾',
-  [SuccessCode.BOOKMARK_ADDED]: '정류장이 즐겨찾기에 추가되었습니다! ⭐',
+  [SuccessCode.JOURNEY_STARTED]: '모험이 시작되었습니다!',
+  [SuccessCode.JOURNEY_SAVED]: '모험 기록이 안전하게 저장되었습니다!',
+  [SuccessCode.BOOKMARK_ADDED]: '정류장이 즐겨찾기에 추가되었습니다!',
 };

@@ -9,4 +9,5 @@ export interface TourismItemDto {
 
 export interface TourismListDto {
   items: TourismItemDto[];
+  warning?: string;
 }

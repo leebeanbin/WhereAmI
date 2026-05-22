@@ -9,6 +9,7 @@ export interface RoutePoint {
   inferredMode: TransportMode;
   confirmedMode: TransportMode;
   stickerId?: string | null;
+  visitedStationName?: string | null;
 }
 
 export interface Journey {
@@ -20,4 +21,5 @@ export interface Journey {
   shareId: string;
   totalDistanceKm: number;
   totalDurationSec: number;
+  route?: RoutePoint[];
 }

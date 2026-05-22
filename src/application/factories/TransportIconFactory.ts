@@ -2,7 +2,7 @@ import { TransportMode } from '../../domain/models/Journey';
 
 export interface IconOptions {
   busType?: 'blue' | 'red' | 'yellow' | 'green';
-  trainLine?: 'seoul_1' | 'seoul_2';
+  trainLine?: 'seoul_1' | 'seoul_2' | 'seoul_3' | 'seoul_4' | 'seoul_5' | 'seoul_6' | 'seoul_7' | 'seoul_8' | 'seoul_9';
   gender?: 'man' | 'woman';
 }
 
@@ -17,7 +17,9 @@ export class TransportIconFactory {
         if (options?.busType === 'green') return '/icons/bus_green.png';
         return '/icons/bus_blue.png';
       case 'train':
-        if (options?.trainLine === 'seoul_2') return '/icons/train_seoul_2.png';
+        if (options?.trainLine) {
+          return `/icons/train_${options.trainLine}.png`;
+        }
         return '/icons/train_seoul_1.png';
       default:
         return '/icons/banana.png';
@@ -35,9 +37,9 @@ export class TransportIconFactory {
 
   static getStationMarkerPath(type: 'bus' | 'subway' | 'train'): string {
     switch (type) {
-      case 'subway': return '/icons/subway_station.svg';
-      case 'train': return '/icons/train_station.svg';
-      default: return '/icons/bus_stop.svg';
+      case 'subway': return '/icons/subway_station.png';
+      case 'train': return '/icons/train_station.png';
+      default: return '/icons/bus_stop.png';
     }
   }
 }
