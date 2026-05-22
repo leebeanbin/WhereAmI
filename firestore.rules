@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /journeys/{journeyId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /settings/{doc} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /users/{userId}/favorites/{doc} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}

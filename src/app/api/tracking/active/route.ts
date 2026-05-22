@@ -1,13 +1,15 @@
 import { NextRequest } from 'next/server';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { ApiResponse } from '@/lib/apiResponse';
 import { ErrorCode } from '@/constants/ResponseCodes';
 
-// 로컬 개발/데모를 위한 메모리 내 활성 세션 상태 저장소
-export let activeSession = {
-  isTracking: false,
-  speedKmh: 0,
-  mode: '도보 🚶',
-};
+const SESSION_DOC_REF = () => doc(db, 'settings', 'activeSession');
+
+const DEFAULT_SESSION = { isTracking: false, speedKmh: 0, mode: '도보 🚶' };
+
+// Firebase 미설정 시 단일 인스턴스 내 메모리 폴백
+let memoryFallback = { ...DEFAULT_SESSION };
 
 /**
  * @swagger
@@ -25,18 +27,27 @@ export let activeSession = {
  *         description: "업데이트 성공"
  */
 export async function GET() {
-  return ApiResponse.ok(activeSession);
+  try {
+    const snap = await getDoc(SESSION_DOC_REF());
+    return ApiResponse.ok(snap.exists() ? snap.data() : DEFAULT_SESSION);
+  } catch {
+    return ApiResponse.ok(memoryFallback);
+  }
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    activeSession = {
+    const session = {
       isTracking: body.isTracking ?? false,
       speedKmh: body.speedKmh ?? 0,
       mode: body.mode ?? '도보 🚶',
     };
-    return ApiResponse.ok(activeSession);
+    memoryFallback = session;
+    try {
+      await setDoc(SESSION_DOC_REF(), { ...session, updatedAt: serverTimestamp() });
+    } catch { /* Firebase 미설정 시 메모리에만 저장 */ }
+    return ApiResponse.ok(session);
   } catch (error: any) {
     return ApiResponse.serverError(ErrorCode.INTERNAL_SERVER_ERROR, error.message);
   }
