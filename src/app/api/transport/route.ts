@@ -41,9 +41,12 @@ export async function GET(request: Request) {
 
   try {
     const data = await adapter.getArrivalInfo(req.stationId, req.cityCode);
-    return ApiResponse.ok<BusScheduleDto[]>(data as BusScheduleDto[]);
+    return ApiResponse.ok({ items: data as BusScheduleDto[] });
   } catch (error: any) {
     console.error('[transport]', error);
-    return ApiResponse.serverError(ErrorCode.API_TIMEOUT, error.message);
+    return ApiResponse.ok({
+      items: [],
+      warning: `버스 도착정보 데이터 조회 실패: ${error.message}`
+    });
   }
 }

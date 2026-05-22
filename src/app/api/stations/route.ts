@@ -40,15 +40,33 @@ export async function GET(request: Request) {
   const tagoAdapter = new TagoApiAdapter(process.env.TAGO_API_KEY ?? '');
 
   try {
-    const [busStations, subwayStations] = await Promise.all([
-      tagoAdapter.getNearbyStations(req.lat, req.lng),
-      fetchNearbySubwayStations(req.lat, req.lng),
-    ]);
+    let busStations: any[] = [];
+    let subwayStations: any[] = [];
+    let warning: string | undefined = undefined;
 
-    return ApiResponse.ok<StationDto[]>([...busStations, ...subwayStations]);
+    try {
+      busStations = await tagoAdapter.getNearbyStations(req.lat, req.lng);
+    } catch (busError: any) {
+      console.warn('[stations] Bus stations query failed:', busError);
+      warning = '주변 버스 정류장 데이터 조회 실패 (서비스 미승인 또는 점검 중)';
+    }
+
+    try {
+      subwayStations = await fetchNearbySubwayStations(req.lat, req.lng);
+    } catch (subwayError: any) {
+      console.warn('[stations] Subway stations query failed:', subwayError);
+      warning = warning 
+        ? `${warning} / 지하철 정류장 조회 실패`
+        : '주변 지하철 정류장 데이터 조회 실패';
+    }
+
+    return ApiResponse.ok({ items: [...busStations, ...subwayStations], warning });
   } catch (error: any) {
     console.error('[stations]', error);
-    return ApiResponse.serverError(ErrorCode.API_TIMEOUT, error.message);
+    return ApiResponse.ok({
+      items: [],
+      warning: `주변 정류장 조회 실패: ${error.message}`
+    });
   }
 }
 

@@ -8,6 +8,7 @@ import { DEFAULT_USER_ID, JOURNEYS_FETCH_LIMIT } from '@/constants/api';
 import { DECIMAL_2_FACTOR } from '@/constants/math';
 import type { HistoryStatsRequestDto } from '@/application/dtos/requests';
 import type { JourneyStatsDto } from '@/application/dtos/StationDto';
+import { activeSession } from '../../tracking/active/route';
 
 /**
  * @swagger
@@ -46,6 +47,7 @@ export async function GET(req: NextRequest) {
       totalDistanceKm: Math.round(totalDistanceKm * DECIMAL_2_FACTOR) / DECIMAL_2_FACTOR,
       totalDurationSec,
       journeyCount: journeys.length,
+      activeSession,
     };
 
     return ApiResponse.ok<JourneyStatsDto>(stats);

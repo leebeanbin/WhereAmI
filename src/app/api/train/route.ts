@@ -62,19 +62,36 @@ export async function GET(request: Request) {
     const response = await fetch(`${TAGO_TRAIN_BASE_URL}/getStrtpntAlocFndTrainInfo?${params}`);
 
     if (!response.ok) {
-      throw new AppError(ErrorCode.API_TIMEOUT, `TAGO 열차 API 오류: ${response.status}`);
+      console.warn(`[Train API Warning] External Train API returned ${response.status}`);
+      return ApiResponse.ok({
+        items: [],
+        warning: `열차 API 통신 오류 (${response.status})`
+      });
     }
 
-    const body = await response.json();
+    const text = await response.text();
+
+    if (!text.trim().startsWith('{')) {
+      console.warn('[Train API Warning] External Train API returned non-JSON:', text);
+      return ApiResponse.ok({
+        items: [],
+        warning: `열차 API 응답 형식 오류 (키 미승인 또는 서비스 점검 중: 403)`
+      });
+    }
+
+    const body = JSON.parse(text);
     const items = body?.response?.body?.items?.item;
 
-    if (!items) return ApiResponse.ok<TrainDto[]>([]);
+    if (!items) return ApiResponse.ok({ items: [] });
 
     const itemArray: Record<string, any>[] = Array.isArray(items) ? items : [items];
-    return ApiResponse.ok<TrainDto[]>(TrainBuilder.fromRawList(itemArray));
+    return ApiResponse.ok({ items: TrainBuilder.fromRawList(itemArray) });
   } catch (error: any) {
     console.error('[Train API Error]', error);
-    return ApiResponse.serverError(ErrorCode.API_TIMEOUT, error.message);
+    return ApiResponse.ok({
+      items: [],
+      warning: `열차 데이터 조회 실패: ${error.message}`
+    });
   }
 }
 

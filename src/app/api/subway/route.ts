@@ -45,21 +45,33 @@ export async function GET(request: Request) {
     const url = `${SEOUL_METRO_API_URL}/${apiKey}/json/realtimeStationArrival/0/${SUBWAY_PAGE_SIZE}/${encodeURIComponent(req.stationName)}`;
     const response = await fetch(url);
 
-    if (!response.ok) throw new Error(`서울 교통 공사 API 오류: ${response.status}`);
+    if (!response.ok) {
+      console.warn(`[Subway API Warning] External Subway API returned ${response.status}`);
+      return ApiResponse.ok({
+        items: [],
+        warning: `지하철 API 통신 오류 (${response.status})`
+      });
+    }
 
     const body = await response.json();
 
     if (body.errorMessage) {
       if (body.errorMessage.code === SEOUL_METRO_NO_DATA_CODE) {
-        return ApiResponse.ok<SubwayArrivalDto[]>([]);
+        return ApiResponse.ok({ items: [] });
       }
-      throw new Error(body.errorMessage.message);
+      return ApiResponse.ok({
+        items: [],
+        warning: `지하철 API 경고: ${body.errorMessage.message}`
+      });
     }
 
     const rows: Record<string, string>[] = body?.realtimeStationArrival?.row ?? [];
-    return ApiResponse.ok<SubwayArrivalDto[]>(SubwayArrivalBuilder.fromRawList(rows));
+    return ApiResponse.ok({ items: SubwayArrivalBuilder.fromRawList(rows) });
   } catch (error: any) {
     console.error('[Subway API Error]', error);
-    return ApiResponse.serverError(ErrorCode.API_TIMEOUT, error.message);
+    return ApiResponse.ok({
+      items: [],
+      warning: `지하철 데이터 조회 실패: ${error.message}`
+    });
   }
 }
