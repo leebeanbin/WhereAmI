@@ -13,13 +13,13 @@
   --font-neodgm: "NeoDunggeunmo", monospace;
   
   /* 8-BIT FOREST RPG DESIGN TOKENS */
-  --color-retro-cream: #fbfbf5;
-  --color-retro-moss: #f0f7f0;
+  --color-retro-cream: #ffffff;
+  --color-retro-moss: #f8f9fa;
   --color-retro-green: #2d6a4f;
-  --color-retro-wood: #b07d30;
-  --color-retro-dark: #1b4332;
-  --color-retro-gray: #6c757d;
-  --color-retro-red: #e63946;
+  --color-retro-wood: #e5a93b;
+  --color-retro-dark: #111827;
+  --color-retro-gray: #6b7280;
+  --color-retro-red: #e76e55;
 }
 
 .pixel-art {
@@ -184,14 +184,162 @@
   content: '';
   position: absolute;
   inset: 0;
+  background: transparent;
+  pointer-events: none;
+  transition: background 0.3s ease;
+}
+
+/* CRT 모드가 활성화되었을 때의 스캔라인 */
+.crt-active.scanlines::after {
   background: repeating-linear-gradient(
     0deg,
     transparent,
     transparent 2px,
-    rgba(0,0,0,0.03) 2px,
-    rgba(0,0,0,0.03) 4px
+    rgba(0,0,0,0.045) 2px,
+    rgba(0,0,0,0.045) 4px
   );
-  pointer-events: none;
+  z-index: 9999;
+}
+
+/* CRT 미세 화면 깜빡임 효과 */
+@keyframes crt-flicker-anim {
+  0%, 100% { opacity: 0.996; }
+  50% { opacity: 0.991; }
+}
+.crt-active.crt-flicker {
+  animation: crt-flicker-anim 0.15s infinite;
+}
+
+/* CRT 화면 볼록 굴곡/글로우 효과 */
+.crt-active.crt-curve {
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.25);
+}
+
+/* ================================== */
+/*  커스텀 8비트 마우스 커서           */
+/* ================================== */
+body, button, a, [role="button"], .nes-btn, .pixel-btn, .cursor-pointer, .nes-checkbox, .nes-radio {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M10,2 L14,2 L14,4 L10,4 Z M10,4 L10,14 L12,14 L12,4 Z M12,4 L16,4 L16,6 L12,6 Z M16,6 L16,14 L18,14 L18,6 Z M18,6 L22,6 L22,8 L18,8 Z M22,8 L22,14 L24,14 L24,8 Z M24,8 L28,8 L28,10 L24,10 Z M28,10 L28,16 L30,16 L30,10 Z M30,10 L32,10 L32,12 L30,12 Z M30,12 L30,22 L32,22 L32,12 Z M28,22 L28,26 L30,26 L30,22 Z M24,26 L24,28 L28,28 L28,26 Z M12,28 L12,30 L24,30 L24,28 Z M6,22 L6,28 L12,28 L12,22 Z M2,14 L2,22 L6,22 L6,14 Z M6,12 L6,14 L8,14 L8,12 Z M8,10 L8,12 L10,12 L10,10 Z' fill='black'/%3E%3Cpath d='M14,6 L14,14 L16,14 L16,6 Z M18,8 L18,14 L20,14 L20,8 Z M22,10 L22,14 L24,14 L24,10 Z M24,12 L24,26 L28,26 L28,12 Z M12,16 L12,28 L24,28 L24,16 Z M6,22 L6,26 L12,26 L12,22 Z M6,14 L6,22 L8,22 L8,14 Z' fill='white'/%3E%3C/svg%3E") 10 2, pointer !important;
+}
+
+/* ================================== */
+/*  3D 레트로 버튼 시스템 (Independent) */
+/* ================================== */
+.pixel-btn-3d {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-family: "NeoDunggeunmo", monospace !important;
+  font-size: inherit !important;
+  background-color: #fbfbf5;
+  color: #1b4332;
+  border: 4px solid #000000 !important;
+  box-shadow: 0 4px 0 0 #000000 !important;
+  text-decoration: none !important;
+  position: relative !important;
+  transform: translateY(0);
+  transition: transform 0.05s ease, box-shadow 0.05s ease, background-color 0.1s ease !important;
+  user-select: none !important;
+}
+.pixel-btn-3d:active {
+  transform: translateY(4px) !important;
+  box-shadow: 0 0px 0 0 #000000 !important;
+}
+.pixel-btn-3d:hover {
+  filter: brightness(1.06);
+}
+
+/* 3D Button Small version */
+.pixel-btn-3d-sm {
+  border-width: 2px !important;
+  box-shadow: 0 2px 0 0 #000000 !important;
+}
+.pixel-btn-3d-sm:active {
+  transform: translateY(2px) !important;
+  box-shadow: 0 0px 0 0 #000000 !important;
+}
+
+/* Color presets to match theme */
+.pixel-btn-3d.is-primary {
+  background-color: #209cee !important;
+  color: #ffffff !important;
+}
+.pixel-btn-3d.is-success {
+  background-color: #92cc41 !important;
+  color: #ffffff !important;
+}
+.pixel-btn-3d.is-warning {
+  background-color: #f7d51d !important;
+  color: #000000 !important;
+}
+.pixel-btn-3d.is-error {
+  background-color: #e76e55 !important;
+  color: #ffffff !important;
+}
+.pixel-btn-3d.is-cream {
+  background-color: #fbfbf5 !important;
+  color: #1b4332 !important;
+}
+
+/* Backwards compatibility aliases */
+.pixel-btn-3d-primary {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-family: "NeoDunggeunmo", monospace !important;
+  position: relative !important;
+  border: 4px solid #000000 !important;
+  box-shadow: 0 4px 0 0 #000000 !important;
+  transform: translateY(0);
+  transition: transform 0.05s ease, box-shadow 0.05s ease, background-color 0.1s ease !important;
+}
+.pixel-btn-3d-primary:active {
+  transform: translateY(4px) !important;
+  box-shadow: 0 0px 0 0 #000000 !important;
+}
+.pixel-btn-3d-secondary {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-family: "NeoDunggeunmo", monospace !important;
+  position: relative !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 0 2px 0 0 #000000 !important;
+  transform: translateY(0);
+  transition: transform 0.05s ease, box-shadow 0.05s ease, background-color 0.1s ease !important;
+}
+.pixel-btn-3d-secondary:active {
+  transform: translateY(2px) !important;
+  box-shadow: 0 0px 0 0 #000000 !important;
+}
+
+
+/* ================================== */
+/*  모바일 반응형 바텀 시트            */
+/* ================================== */
+@media (max-width: 767px) {
+  .mobile-bottom-sheet {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    z-index: 110 !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-left-radius: 0 !important; /* 둥근 모바일 감성 탈피 */
+    border-top-right-radius: 0 !important; /* 둥근 모바일 감성 탈피 */
+    border-left: none !important; /* 내부의 border-retro-thick와 겹치므로 제거 */
+    border-right: none !important; /* 내부의 border-retro-thick와 겹치므로 제거 */
+    border-top: none !important; /* 내부의 border-retro-thick와 겹치므로 제거 */
+    border-bottom: none !important;
+    max-height: 90vh !important; /* 내용이 더 잘 보이도록 크기 확장 */
+    transform: translateY(0);
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.25) !important;
+  }
+  
 }
 
 /* ===================== */
@@ -213,8 +361,8 @@
 }
 
 body {
-  background: #e4ebe4;
-  color: #212529;
+  background: #f3f4f6;
+  color: #111827;
   font-family: "NeoDunggeunmo", monospace;
 }
 
@@ -333,9 +481,11 @@ body {
 /* ===================== */
 /*  카카오 맵 레트로 필터   */
 /* ===================== */
+
+/* 지도 타일 이미지(img)에만 정밀하고 밝은 레트로 세피아 그레이딩 적용 */
 .retro-map-filter img {
   image-rendering: pixelated;
-  filter: sepia(0.25) hue-rotate(75deg) saturate(1.4) contrast(1.1) brightness(0.95) !important;
+  filter: sepia(0.2) saturate(1.3) contrast(1.05) brightness(0.96) !important;
 }
 
 

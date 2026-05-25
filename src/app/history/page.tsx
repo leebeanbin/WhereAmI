@@ -8,6 +8,7 @@ import { formatDistance, formatDuration } from '@/application/utils/geoUtils';
 import { DEFAULT_USER_ID } from '@/constants/api';
 import { useLocationStore } from '@/store/useLocationStore';
 import { TransportIconFactory } from '@/application/factories/TransportIconFactory';
+import { playClickSound } from '@/application/utils/audioUtils';
 import PixelToast from '@/components/PixelToast';
 
 function formatDate(ts: number) {
@@ -83,6 +84,7 @@ function JourneyCard({ journey, index, onOpenTicket }: JourneyCardProps) {
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.stopPropagation();
+    playClickSound();
     const url = `${window.location.origin}/share/${journey.shareId}`;
     navigator.clipboard.writeText(url)
       .then(() => {
@@ -176,18 +178,18 @@ function JourneyCard({ journey, index, onOpenTicket }: JourneyCardProps) {
         )}
       </div>
 
-      {/* 조작계 */}
-      <div className="flex justify-between gap-2.5 mt-2 border-t border-dashed border-gray-200 pt-3">
+      {/* 조작계 - 3D 레트로 버튼 시스템 적용 */}
+      <div className="flex justify-between gap-2.5 mt-2 border-t border-dashed border-gray-200 pt-3 select-none">
         <button
           onClick={handleCopyLink}
-          className="nes-btn is-primary text-retro-caption-bold py-1 px-3 flex-1 flex items-center justify-center gap-1.5 shadow-[1px_1px_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-[1px]"
+          className="nes-btn is-primary text-retro-caption-bold py-1 px-3 flex-1 flex items-center justify-center gap-1.5 pixel-btn-3d-secondary"
         >
           <img src="/icons/compass_icon.png" className="w-3.5 h-3.5 pixelated shrink-0" alt="share" />
           <span>공유하기</span>
         </button>
         <button
-          onClick={() => onOpenTicket(journey)}
-          className="nes-btn is-success text-retro-caption-bold py-1 px-3 flex-1 flex items-center justify-center gap-1.5 shadow-[1px_1px_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-[1px]"
+          onClick={() => { playClickSound(); onOpenTicket(journey); }}
+          className="nes-btn is-success text-retro-caption-bold py-1 px-3 flex-1 flex items-center justify-center gap-1.5 pixel-btn-3d-secondary"
         >
           <img src="/icons/controller_icon.png" className="w-3.5 h-3.5 pixelated shrink-0" alt="receipt" />
           <span>8비트 영수증</span>
@@ -211,6 +213,7 @@ function HistoryTicketModal({ journey, onClose }: HistoryTicketModalProps) {
   const stats = useMemo(() => getJourneyStats(journey.route), [journey.route]);
 
   const handleClose = () => {
+    playClickSound();
     setIsExiting(true);
     setTimeout(() => {
       onClose();
@@ -259,8 +262,8 @@ function HistoryTicketModal({ journey, onClose }: HistoryTicketModalProps) {
               <div className="flex flex-wrap gap-1.5">
                 {stats.stamps.map((st, i) => (
                   <span key={i} className="text-retro-caption-bold bg-retro-moss border border-retro-thin text-retro-wood px-1.5 py-0.5 rounded-sm inline-flex items-center gap-1">
-                    <img src="/icons/bus_stop.png" className="w-3 h-3 pixelated shrink-0" alt="stamp" />
-                    <span>{st}</span>
+                     <img src="/icons/bus_stop.png" className="w-3 h-3 pixelated shrink-0" alt="stamp" />
+                     <span>{st}</span>
                   </span>
                 ))}
               </div>
@@ -281,7 +284,7 @@ function HistoryTicketModal({ journey, onClose }: HistoryTicketModalProps) {
         </div>
 
         <div className="mt-6 pt-4 border-t-2 border-dashed border-gray-300 text-center">
-          <button onClick={handleClose} className="nes-btn is-success w-full text-retro-body-bold flex items-center justify-center gap-1.5 shadow-[1px_1px_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-[1px]">
+          <button onClick={handleClose} className="nes-btn is-success w-full text-retro-body-bold flex items-center justify-center gap-1.5 pixel-btn-3d-primary">
             <img src="/icons/controller_icon.png" className="w-4 h-4 pixelated shrink-0" alt="close" />
             <span>영수증 접기 (닫기)</span>
           </button>
@@ -303,6 +306,8 @@ export default function HistoryPage() {
   // 영수증 보기용 여정
   const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
 
+  const { scanlineEnabled } = useLocationStore();
+
   useEffect(() => {
     fetchJourneys(DEFAULT_USER_ID)
       .then(setJourneys)
@@ -314,7 +319,7 @@ export default function HistoryPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#e4ebe4] text-retro-dark font-neodgm p-4 md:p-6 scanlines">
+    <main className={`h-full overflow-y-auto bg-gray-100 text-retro-dark font-neodgm p-4 md:p-6 ${scanlineEnabled ? 'crt-active scanlines crt-flicker crt-curve' : ''}`}>
       <PixelToast />
 
       {/* 헤더 */}
@@ -324,7 +329,12 @@ export default function HistoryPage() {
             <h1 className="text-retro-title-lg font-bold retro-arcade-logo tracking-widest select-none">MY ARCHIVE</h1>
             <p className="text-retro-caption text-retro-gray mt-1">나의 모험 기록 보관함</p>
           </div>
-          <Link href="/" className="nes-btn is-primary text-retro-caption-bold py-1.5 px-3 flex items-center justify-center gap-1.5 shadow-[1px_1px_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-[1px]" style={{ textDecoration: 'none' }}>
+          <Link 
+            href="/" 
+            onClick={() => playClickSound()}
+            className="nes-btn is-primary text-retro-caption-bold py-1.5 px-3 flex items-center justify-center gap-1.5 pixel-btn-3d-secondary" 
+            style={{ textDecoration: 'none' }}
+          >
             <img src="/icons/play_icon.png" className="w-3.5 h-3.5 pixelated shrink-0 transform rotate-180" alt="back" />
             <span>모험 복귀</span>
           </Link>
@@ -375,7 +385,12 @@ export default function HistoryPage() {
           <img src="/icons/compass_icon.png" className="w-12 h-12 mb-3 pixelated animate-pulse" alt="empty map" />
           <p className="text-retro-body text-retro-gray mb-1">아직 정식 등록된 모험 기록이 존재하지 않습니다!</p>
           <p className="text-retro-caption text-retro-gray">당신의 첫 번째 Retro 발자취를 남겨 보십시오.</p>
-          <Link href="/" className="nes-btn is-success mt-4 inline-flex items-center justify-center gap-1.5 text-retro-caption-bold py-1.5 px-3" style={{ textDecoration: 'none' }}>
+          <Link 
+            href="/" 
+            onClick={() => playClickSound()}
+            className="nes-btn is-success mt-4 inline-flex items-center justify-center gap-1.5 text-retro-caption-bold py-1.5 px-3 pixel-btn-3d-secondary" 
+            style={{ textDecoration: 'none' }}
+          >
             <img src="/icons/play_icon.png" className="w-4 h-4 pixelated shrink-0" alt="start" />
             <span>첫 모험 떠나기</span>
           </Link>
