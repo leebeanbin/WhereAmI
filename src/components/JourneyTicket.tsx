@@ -8,6 +8,7 @@ import { MS_PER_SECOND } from '@/constants/math';
 import { useEffect, useState, useMemo } from 'react';
 import { TransportIconFactory } from '@/application/factories/TransportIconFactory';
 import { TransportMode } from '@/domain/models/Journey';
+import { playClickSound } from '@/application/utils/audioUtils';
 
 export default function JourneyTicket() {
   const { showTicketModal, setShowTicketModal, route, setToast } = useLocationStore();
@@ -84,6 +85,7 @@ export default function JourneyTicket() {
   }, [showTicketModal, route, saveComplete, isSaving, stats.totalDistanceKm, stats.durationSec]);
 
   const handleShare = async () => {
+    playClickSound();
     if (!shareId) return;
     const url = `${window.location.origin}/share/${shareId}`;
     if (navigator.share) {
@@ -95,6 +97,7 @@ export default function JourneyTicket() {
   };
 
   const handleClose = () => {
+    playClickSound();
     setShowTicketModal(false);
     setSaveComplete(false);
     setSaveFailed(false);
@@ -105,9 +108,9 @@ export default function JourneyTicket() {
 
   return (
     <div className={`fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 ${isExiting ? 'animate-pixel-out' : 'animate-pixel-in'}`}>
-      <div className="bg-retro-cream text-retro-dark font-neodgm drop-shadow-[8px_8px_0_rgba(0,0,0,1)] max-w-sm w-full max-h-[90vh] overflow-y-auto relative pt-8 pb-8 px-6 border-x-4 border-black" style={{ scrollbarWidth: 'none', backgroundColor: '#fbfbf5' }}>
+      <div className="bg-retro-cream text-retro-dark font-neodgm drop-shadow-[8px_8px_0_rgba(0,0,0,1)] max-w-sm w-full max-h-[90vh] overflow-y-auto relative pt-8 pb-8 px-6 border-x-4 border-black" style={{ scrollbarWidth: 'none' }}>
         {/* 상단 절취선 */}
-        <div className="absolute top-0 left-0 right-0 h-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDAgMTAsMTAgMjAsMCIgZmlsbD0iI2ZiZmJmNSIvPjwvc3ZnPg==')] bg-repeat-x -mt-3" />
+        <div className="absolute top-0 left-0 right-0 h-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDAgMTAsMTAgMjAsMCIgZmlsbD0iI2ZmZmZmZiIvPjwvc3ZnPg==')] bg-repeat-x -mt-3" />
 
         <div className="text-center border-b-2 border-dashed border-gray-400 pb-4 mb-4">
           <h2 className="text-retro-title-lg text-retro-green font-bold mb-1 tracking-widest">RECEIPT</h2>
@@ -184,20 +187,20 @@ export default function JourneyTicket() {
           ) : null}
 
           {saveComplete && shareId && (
-            <button onClick={handleShare} className="nes-btn is-primary w-full mb-3 text-retro-body-bold flex items-center justify-center gap-1.5">
+            <button onClick={handleShare} className="nes-btn is-primary w-full mb-3 text-retro-body-bold flex items-center justify-center gap-1.5 pixel-btn-3d-primary">
               <img src="/icons/compass_icon.png" className="w-4 h-4 pixelated shrink-0" alt="share" />
               <span>이 모험 공유하기</span>
             </button>
           )}
 
-          <button onClick={handleClose} className="nes-btn is-success w-full text-retro-body-bold flex items-center justify-center gap-1.5">
+          <button onClick={handleClose} className="nes-btn is-success w-full text-retro-body-bold flex items-center justify-center gap-1.5 pixel-btn-3d-primary">
             <img src="/icons/controller_icon.png" className="w-4 h-4 pixelated shrink-0" alt="close" />
             <span>확인 및 닫기</span>
           </button>
         </div>
 
         {/* 하단 절취선 */}
-        <div className="absolute -bottom-3 left-0 right-0 h-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDEwIDEwLDAgMjAsMTAiIGZpbGw9IiNmYmZiZjUiLz48L3N2Zz4=')] bg-repeat-x" />
+        <div className="absolute -bottom-3 left-0 right-0 h-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDEwIDEwLDAgMjAsMTAiIGZpbGw9IiNmZmZmZmYiLz48L3N2Zz4=')] bg-repeat-x" />
       </div>
     </div>
   );

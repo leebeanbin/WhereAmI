@@ -44,7 +44,6 @@ export default function PixelToast() {
           className={`nes-container is-rounded bg-retro-cream border-retro-thin shadow-[4px_4px_0_0_rgba(0,0,0,1)] !py-2 !px-3 hover:opacity-90 transition-opacity duration-150 ${
             isError ? 'text-retro-red' : 'text-retro-green'
           }`}
-          style={{ backgroundColor: '#fbfbf5' }}
         >
           <div className="flex items-center gap-2">
             {isError ? (

@@ -41,7 +41,6 @@ export default function TourismNewsTicker() {
       >
         <div 
           className="nes-container is-rounded bg-retro-cream border-retro-thick shadow-[4px_4px_0_0_rgba(0,0,0,1)] p-3 hover:opacity-95 transition-opacity duration-150"
-          style={{ backgroundColor: '#fbfbf5' }}
         >
           <div className="flex items-center gap-3">
             <img src="/icons/compass_icon.png" className="w-8 h-8 pixelated shrink-0 animate-bounce" alt="alert" />

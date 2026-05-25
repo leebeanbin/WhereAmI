@@ -7,6 +7,7 @@ import { Journey, RoutePoint, TransportMode } from '@/domain/models/Journey';
 import { fetchJourneyByShareId } from '@/application/queries/fetchJourneys';
 import { formatDistance, formatDuration } from '@/application/utils/geoUtils';
 import { TransportIconFactory } from '@/application/factories/TransportIconFactory';
+import { playClickSound } from '@/application/utils/audioUtils';
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleString('ko-KR', {
@@ -81,7 +82,7 @@ export default function SharePage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#e4ebe4] font-neodgm flex items-center justify-center">
+      <main className="h-full overflow-y-auto bg-gray-100 font-neodgm flex items-center justify-center">
         <div className="text-center flex flex-col items-center justify-center gap-3">
           <img src="/icons/compass_icon.png" className="w-12 h-12 pixelated animate-spin" alt="loading" />
           <p className="text-xs text-gray-500 animate-pulse">클라우드 통신망에서 모험 기록 수신 중...</p>
@@ -92,14 +93,14 @@ export default function SharePage() {
 
   if (notFound || !journey) {
     return (
-      <main className="min-h-screen bg-[#e4ebe4] font-neodgm flex items-center justify-center p-4">
+      <main className="h-full overflow-y-auto bg-gray-100 font-neodgm flex items-center justify-center p-4">
         <div className="nes-container is-rounded bg-retro-cream text-center py-10 max-w-xs w-full border-retro-thick shadow-[4px_4px_0_0_rgba(0,0,0,1)] flex flex-col items-center justify-center gap-3">
           <img src="/icons/compass_icon.png" className="w-12 h-12 pixelated animate-pulse" alt="not found" />
           <div>
             <p className="text-sm text-gray-800 font-bold mb-1">존재하지 않는 모험 기록이에요.</p>
             <p className="text-xs text-gray-400">링크를 다시 확인해 주세요.</p>
           </div>
-          <Link href="/" className="nes-btn is-primary text-xs mt-2 flex items-center justify-center gap-1.5 shadow-[1px_1px_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-[1px]" style={{ textDecoration: 'none' }}>
+          <Link href="/" className="pixel-btn-3d is-primary text-retro-caption-bold py-2 px-4 flex items-center justify-center gap-1.5" style={{ textDecoration: 'none' }}>
             <img src="/icons/play_icon.png" className="w-4 h-4 pixelated shrink-0" alt="play" />
             <span>내 모험 시작하기</span>
           </Link>
@@ -109,13 +110,13 @@ export default function SharePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#e4ebe4] font-neodgm flex flex-col items-center justify-center p-4">
+    <main className="h-full overflow-y-auto bg-gray-100 font-neodgm flex flex-col items-center justify-center p-4">
       <p className="text-retro-caption-bold text-retro-gray mb-4 tracking-[0.2em] uppercase">— SHARED QUEST RECEIPT —</p>
 
       {/* 영수증 카드 */}
       <div className="bg-retro-cream text-retro-dark drop-shadow-[8px_8px_0_rgba(0,0,0,1)] max-w-sm w-full relative pt-8 pb-10 px-6 border-x-4 border-black animate-pixel-in">
         {/* 상단 절취선 */}
-        <div className="absolute top-0 left-0 right-0 h-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDAgMTAsMTAgMjAsMCIgZmlsbD0iI2ZiZmJmNSIvPjwvc3ZnPg==')] bg-repeat-x -mt-3" />
+        <div className="absolute top-0 left-0 right-0 h-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDgsaTEwLDEwIDIwLDAiIGZpbGw9IiNmZmZmZmYiLz48L3N2Zz4=')] bg-repeat-x -mt-3" style={{ backgroundImage: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDAgMTAsMTAgMjAsMCIgZmlsbD0iI2ZmZmZmZiIvPjwvc3ZnPg==")` }} />
 
         <div className="text-center border-b-2 border-dashed border-gray-400 pb-4 mb-4">
           <h2 className="text-retro-title-lg text-retro-green font-bold mb-1 tracking-widest">RECEIPT</h2>
@@ -193,13 +194,18 @@ export default function SharePage() {
         </div>
 
         {/* 하단 절취선 */}
-        <div className="absolute -bottom-3 left-0 right-0 h-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDEwIDEwLDAgMjAsMTAiIGZpbGw9IiNmYmZiZjUiLz48L3N2Zz4=')] bg-repeat-x" />
+        <div className="absolute -bottom-3 left-0 right-0 h-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDEwIDEwLDAgMjAsMTAiIGZpbGw9IiNmZmZmZmYiLz48L3N2Zz4=')] bg-repeat-x" />
       </div>
 
       {/* CTA */}
-      <div className="mt-8 text-center flex flex-col items-center gap-2">
+      <div className="mt-8 text-center flex flex-col items-center gap-2 select-none">
         <p className="text-retro-caption text-retro-gray mb-1">나도 내 모험을 기록하고 싶다면?</p>
-        <Link href="/" className="nes-btn is-success text-retro-body-bold flex items-center justify-center gap-1.5 shadow-[1px_1px_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-[1px]" style={{ textDecoration: 'none' }}>
+        <Link 
+          href="/" 
+          onClick={() => { playClickSound(); }}
+          className="pixel-btn-3d is-success text-retro-body-bold py-2 px-4 flex items-center justify-center gap-1.5" 
+          style={{ textDecoration: 'none' }}
+        >
           <img src="/icons/play_icon.png" className="w-4 h-4 pixelated shrink-0" alt="play" />
           <span>Where Am I? 시작하기</span>
         </Link>
