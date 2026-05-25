@@ -5,19 +5,32 @@ import { DEFAULT_CITY_CODE } from '../constants/api';
 
 export type { RoutePoint, TransportMode };
 
+export interface NavigationTarget {
+  lat: number;
+  lng: number;
+  name: string;
+  kakaoLink: string;
+}
+
 interface LocationState {
   currentLocation: { lat: number; lng: number } | null;
   route: RoutePoint[];
   isTracking: boolean;
   detectedMode: TransportMode;
   confirmedMode: TransportMode;
-  emaSpeed: number; // Current Exponential Moving Average speed
+  emaSpeed: number;
   nearbyStations: StationInfo[];
   selectedStation: StationInfo | null;
+  navigationTarget: NavigationTarget | null;
+  navigationRoute: { lat: number; lng: number }[] | null;
+  mapClickedLocation: { lat: number; lng: number } | null;
   showTicketModal: boolean;
   cityCode: string;
   tourismNews: { title: string; distance: number } | null;
   toast: { message: string; type: 'error' | 'success' } | null;
+  soundEnabled: boolean;
+  scanlineEnabled: boolean;
+  gpsPermissionStatus: 'granted' | 'prompt' | 'denied' | 'unknown';
   setCurrentLocation: (loc: { lat: number; lng: number }) => void;
   addRoutePoint: (point: RoutePoint) => void;
   toggleTracking: () => void;
@@ -25,10 +38,16 @@ interface LocationState {
   setConfirmedMode: (mode: TransportMode) => void;
   setNearbyStations: (stations: StationInfo[]) => void;
   setSelectedStation: (station: StationInfo | null) => void;
+  setNavigationTarget: (target: NavigationTarget | null) => void;
+  setNavigationRoute: (route: { lat: number; lng: number }[] | null) => void;
+  setMapClickedLocation: (loc: { lat: number; lng: number } | null) => void;
   setShowTicketModal: (show: boolean) => void;
   setCityCode: (code: string) => void;
   setTourismNews: (news: { title: string; distance: number } | null) => void;
   setToast: (toast: { message: string; type: 'error' | 'success' } | null) => void;
+  setSoundEnabled: (enabled: boolean) => void;
+  setScanlineEnabled: (enabled: boolean) => void;
+  setGpsPermissionStatus: (status: 'granted' | 'prompt' | 'denied' | 'unknown') => void;
   checkInStation: (stationId: string, stationName: string) => void;
   loadPersistedJourney: () => void;
   clearActiveJourneyCache: () => void;
@@ -51,6 +70,18 @@ export const useLocationStore = create<LocationState>((set) => ({
   detectedMode: null,
   confirmedMode: 'walk',
   emaSpeed: 0,
+  nearbyStations: [],
+  selectedStation: null,
+  navigationTarget: null,
+  navigationRoute: null,
+  mapClickedLocation: null,
+  showTicketModal: false,
+  cityCode: DEFAULT_CITY_CODE,
+  tourismNews: null,
+  toast: null,
+  soundEnabled: true, // Default to true
+  scanlineEnabled: true, // Default to true
+  gpsPermissionStatus: 'unknown',
   setCurrentLocation: (loc) => set({ currentLocation: loc }),
   addRoutePoint: (point) => set((state) => {
       const newRoute = [...state.route, point];
@@ -84,18 +115,28 @@ export const useLocationStore = create<LocationState>((set) => ({
       saveToLocalStorage(state.route, state.isTracking, mode);
       return { confirmedMode: mode, detectedMode: null };
   }),
-  nearbyStations: [],
-  selectedStation: null,
-  showTicketModal: false,
-  cityCode: DEFAULT_CITY_CODE,
-  tourismNews: null,
-  toast: null,
   setNearbyStations: (stations) => set({ nearbyStations: stations }),
   setSelectedStation: (station) => set({ selectedStation: station }),
+  setNavigationTarget: (target) => set({ navigationTarget: target, navigationRoute: null }),
+  setNavigationRoute: (route) => set({ navigationRoute: route }),
+  setMapClickedLocation: (loc) => set({ mapClickedLocation: loc }),
   setShowTicketModal: (show) => set({ showTicketModal: show }),
   setCityCode: (code) => set({ cityCode: code }),
   setTourismNews: (news) => set({ tourismNews: news }),
   setToast: (toast) => set({ toast }),
+  setSoundEnabled: (enabled) => set(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('whereami_sound_enabled', String(enabled));
+    }
+    return { soundEnabled: enabled };
+  }),
+  setScanlineEnabled: (enabled) => set(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('whereami_scanline_enabled', String(enabled));
+    }
+    return { scanlineEnabled: enabled };
+  }),
+  setGpsPermissionStatus: (status) => set({ gpsPermissionStatus: status }),
   checkInStation: (stationId, stationName) => set((state) => {
     if (state.route.length === 0) return {};
     const newRoute = [...state.route];
@@ -116,6 +157,16 @@ export const useLocationStore = create<LocationState>((set) => ({
           const { route, isTracking, confirmedMode } = JSON.parse(dataStr);
           const emaSpeed = route.length > 0 ? route[route.length - 1].emaSpeedKmh : 0;
           set({ route, isTracking, confirmedMode, emaSpeed });
+        }
+
+        const soundPersisted = localStorage.getItem('whereami_sound_enabled');
+        if (soundPersisted !== null) {
+          set({ soundEnabled: soundPersisted === 'true' });
+        }
+
+        const scanlinePersisted = localStorage.getItem('whereami_scanline_enabled');
+        if (scanlinePersisted !== null) {
+          set({ scanlineEnabled: scanlinePersisted === 'true' });
         }
       } catch (e) {
         console.error('[LocationStore] Failed to load active journey from localStorage', e);
