@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocationStore } from '@/store/useLocationStore';
 import { useFavoriteStations } from '@/application/hooks/useFavoriteStations';
 import { TransportSchedule } from '@/domain/interfaces/IPublicTransportAdapter';
@@ -9,6 +9,8 @@ import { TransportIconFactory } from '@/application/factories/TransportIconFacto
 import type { ApiBody } from '@/lib/apiResponse';
 import type { SubwayArrivalDto, TrainDto } from '@/application/dtos/TransportDto';
 import type { TourismItemDto, TourismListDto } from '@/application/dtos/TourismDto';
+import { playClickSound, playLevelUpSound } from '@/application/utils/audioUtils';
+import { getDistanceFromLatLonInKm, formatDistance, formatDuration } from '@/application/utils/geoUtils';
 
 type Tab = 'bus' | 'subway' | 'train' | 'tour';
 
@@ -31,6 +33,8 @@ export default function StationBillboard() {
   const {
     selectedStation,
     setSelectedStation,
+    setNavigationTarget,
+    currentLocation,
     cityCode,
     setToast,
     isTracking,
@@ -46,6 +50,7 @@ export default function StationBillboard() {
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
+  const lastRetryTimeRef = useRef(0);
 
   // 로컬 렌더링 상태 및 퇴장 애니메이션 제어
   const [stationToRender, setStationToRender] = useState(selectedStation);
@@ -171,39 +176,77 @@ export default function StationBillboard() {
   if (!stationToRender) return null;
 
   return (
-    <div className={`fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:bottom-6 z-[70] md:w-[420px] max-w-[calc(100vw-2rem)] ${isExiting ? 'animate-slide-up-out' : 'animate-slide-up'}`}>
-      <div className="nes-container is-rounded bg-retro-cream text-retro-dark font-neodgm shadow-2xl relative border-retro-thick p-4 md:p-5 max-h-[85vh] overflow-y-auto" style={{ scrollbarWidth: 'none', backgroundColor: '#fbfbf5' }}>
+    <div className={`fixed z-[70] md:w-[420px] md:left-auto md:right-6 md:bottom-6 mobile-bottom-sheet ${isExiting ? 'animate-slide-up-out' : 'animate-slide-up'}`}>
+      <div className="bg-retro-cream text-retro-dark font-neodgm shadow-2xl relative border-retro-thick p-4 md:p-5 max-h-[85vh] overflow-y-auto rounded-sm" style={{ scrollbarWidth: 'none' }}>
         {/* 닫기 버튼 */}
         <button
-          onClick={() => setSelectedStation(null)}
+          onClick={() => { playClickSound(); setSelectedStation(null); }}
           className="absolute top-3 right-3 text-black bg-white hover:bg-gray-100 w-8 h-8 flex items-center justify-center rounded-sm border-retro-thin pixel-btn shadow-[2px_2px_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px]"
         >
           <span className="text-retro-body-bold leading-none select-none">X</span>
         </button>
 
         {/* 상단 헤더 영역 */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-3 border-b-4 border-gray-300 pb-2.5 w-full">
-          <h3 className="text-retro-subtitle text-retro-wood flex items-center gap-1.5 min-w-0">
-            <img 
-              src={TransportIconFactory.getStationMarkerPath(stationToRender.type)} 
-              className="w-5 h-5 pixelated shrink-0" 
-              alt="station type" 
-            />
-            <span className="truncate">{stationToRender.stationName}</span>
-          </h3>
-          <div className="flex flex-wrap gap-2 w-full md:w-auto justify-end">
+        <div className="flex flex-col mb-3 border-b-4 border-gray-300 pb-2.5 w-full">
+          <div className="flex items-start justify-between gap-2 min-w-0">
+            <h3 className="text-retro-subtitle text-retro-wood flex items-center gap-1.5 min-w-0">
+              <img
+                src={TransportIconFactory.getStationMarkerPath(stationToRender.type)}
+                className="w-5 h-5 pixelated shrink-0"
+                alt="station type"
+              />
+              <span className="truncate">{stationToRender.stationName}</span>
+            </h3>
+            {currentLocation && (() => {
+              const distKm = getDistanceFromLatLonInKm(
+                currentLocation.lat, currentLocation.lng,
+                stationToRender.lat, stationToRender.lng,
+              );
+              const walkSec = (distKm / 4) * 3600;
+              return (
+                <div className="text-right shrink-0">
+                  <div className="text-retro-caption-bold text-retro-green">{formatDistance(distKm)}</div>
+                  <div className="text-retro-tiny text-retro-gray">도보 {formatDuration(walkSec)}</div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* 액션 버튼 — 한 줄 4개 */}
+          <div className="flex gap-1.5 w-full mt-2.5 select-none">
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setNavigationTarget({
+                  lat: stationToRender.lat,
+                  lng: stationToRender.lng,
+                  name: stationToRender.stationName,
+                  kakaoLink: `https://map.kakao.com/link/to/${encodeURIComponent(stationToRender.stationName)},${stationToRender.lat},${stationToRender.lng}`,
+                });
+                setSelectedStation(null);
+              }}
+              className="pixel-btn-3d pixel-btn-3d-sm is-primary text-retro-caption-bold py-1.5 px-1 flex-1 flex items-center justify-center gap-1"
+            >
+              <img src="/icons/walk_man.png" className="w-3.5 h-3.5 pixelated shrink-0" alt="directions" />
+              <span>길찾기</span>
+            </button>
             <a
               href={`https://map.kakao.com/link/to/${encodeURIComponent(stationToRender.stationName)},${stationToRender.lat},${stationToRender.lng}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="nes-btn is-primary text-retro-caption-bold px-2.5 py-1 text-center flex items-center justify-center gap-1.5 shrink-0 shadow-[1px_1px_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-[1px]"
+              onClick={() => playClickSound()}
+              className="pixel-btn-3d pixel-btn-3d-sm is-warning text-retro-caption-bold py-1.5 px-1 flex-1 flex items-center justify-center gap-1"
               style={{ textDecoration: 'none' }}
             >
-              <img src="/icons/walk_man.png" className="w-3.5 h-3.5 pixelated shrink-0" alt="directions" />
-              <span>가는방법</span>
+              <img src="/icons/compass_icon.png" className="w-3.5 h-3.5 pixelated shrink-0" alt="kakao" />
+              <span>카카오맵</span>
             </a>
+            
             <button
+              type="button"
               onClick={() => {
+                playClickSound();
                 const wasFavorite = isFavorite(stationToRender.stationId);
                 toggleFavorite(stationToRender.stationId);
                 setToast({
@@ -211,67 +254,63 @@ export default function StationBillboard() {
                   type: wasFavorite ? 'error' : 'success',
                 });
               }}
-              className={`nes-btn text-retro-caption-bold px-2.5 py-1 flex items-center justify-center gap-1.5 shrink-0 shadow-[1px_1px_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-[1px] ${isFavorite(stationToRender.stationId) ? 'is-warning' : ''}`}
+              className={`pixel-btn-3d pixel-btn-3d-sm text-retro-caption-bold py-1.5 px-1 flex-1 flex items-center justify-center gap-1 ${isFavorite(stationToRender.stationId) ? 'is-warning' : 'is-cream'}`}
             >
               <img src="/icons/book_icon.png" className="w-3.5 h-3.5 pixelated shrink-0" alt="favorite" />
-              <span>{isFavorite(stationToRender.stationId) ? '단골' : '단골 추가'}</span>
+              <span>{isFavorite(stationToRender.stationId) ? '단골' : '단골'}</span>
             </button>
+
             <button
+              type="button"
               onClick={() => {
                 if (!isTracking) {
-                  setToast({
-                    message: '모험을 시작해야 기록을 남길 수 있습니다!',
-                    type: 'error',
-                  });
+                  playClickSound();
+                  setToast({ message: '모험을 시작해야 기록을 남길 수 있습니다!', type: 'error' });
                   return;
                 }
                 if (route.length === 0) {
-                  setToast({
-                    message: 'GPS 신호 수신 후 체크인할 수 있습니다.',
-                    type: 'error',
-                  });
+                  playClickSound();
+                  setToast({ message: 'GPS 신호 수신 후 체크인할 수 있습니다.', type: 'error' });
                   return;
                 }
+                playLevelUpSound();
                 checkInStation(stationToRender.stationId, stationToRender.stationName);
-                setToast({
-                  message: `[${stationToRender.stationName}] 체크인 완료!`,
-                  type: 'success',
-                });
+                setToast({ message: `[${stationToRender.stationName}] 체크인 완료!`, type: 'success' });
               }}
-              className="nes-btn is-success text-retro-caption-bold px-2.5 py-1 flex items-center justify-center gap-1.5 shrink-0 shadow-[1px_1px_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-[1px]"
+              className="pixel-btn-3d pixel-btn-3d-sm is-success text-retro-caption-bold py-1.5 px-1 flex-1 flex items-center justify-center gap-1"
             >
               <img src="/icons/bus_stop.png" className="w-3.5 h-3.5 pixelated shrink-0" alt="record" />
-              <span>이곳에 기록</span>
+              <span>기록</span>
             </button>
           </div>
         </div>
 
-        {/* 탭 버튼 */}
-        <div className="flex gap-2 mb-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+        {/* 탭 버튼 - 크기 확장 및 3D 독립 버튼화 */}
+        <div className="flex gap-2 mb-3 overflow-x-auto pb-1.5 select-none" style={{ scrollbarWidth: 'none' }}>
           <button
-            onClick={() => setActiveTab('bus')}
-            className={`nes-btn text-retro-caption-bold px-2.5 py-1 flex items-center gap-1.5 shrink-0 ${activeTab === 'bus' ? 'is-primary' : ''}`}
+            onClick={() => { playClickSound(); setActiveTab('bus'); }}
+            className={`pixel-btn-3d pixel-btn-3d-sm text-retro-caption-bold py-1.5 px-3 flex items-center gap-1.5 shrink-0 ${activeTab === 'bus' ? 'is-primary' : 'is-cream'}`}
           >
             <img src="/icons/bus_blue.png" className="w-4 h-4 pixelated shrink-0" alt="bus tab" />
             <span>버스</span>
           </button>
           <button
-            onClick={() => setActiveTab('subway')}
-            className={`nes-btn text-retro-caption-bold px-2.5 py-1 flex items-center gap-1.5 shrink-0 ${activeTab === 'subway' ? 'is-primary' : ''}`}
+            onClick={() => { playClickSound(); setActiveTab('subway'); }}
+            className={`pixel-btn-3d pixel-btn-3d-sm text-retro-caption-bold py-1.5 px-3 flex items-center gap-1.5 shrink-0 ${activeTab === 'subway' ? 'is-primary' : 'is-cream'}`}
           >
             <img src="/icons/subway_station.png" className="w-4 h-4 pixelated shrink-0" alt="subway tab" />
             <span>지하철</span>
           </button>
           <button
-            onClick={() => setActiveTab('train')}
-            className={`nes-btn text-retro-caption-bold px-2.5 py-1 flex items-center gap-1.5 shrink-0 ${activeTab === 'train' ? 'is-primary' : ''}`}
+            onClick={() => { playClickSound(); setActiveTab('train'); }}
+            className={`pixel-btn-3d pixel-btn-3d-sm text-retro-caption-bold py-1.5 px-3 flex items-center gap-1.5 shrink-0 ${activeTab === 'train' ? 'is-primary' : 'is-cream'}`}
           >
             <img src="/icons/train_station.png" className="w-4 h-4 pixelated shrink-0" alt="train tab" />
             <span>열차</span>
           </button>
           <button
-            onClick={() => setActiveTab('tour')}
-            className={`nes-btn text-retro-caption-bold px-2.5 py-1 flex items-center gap-1.5 shrink-0 ${activeTab === 'tour' ? 'is-primary' : ''}`}
+            onClick={() => { playClickSound(); setActiveTab('tour'); }}
+            className={`pixel-btn-3d pixel-btn-3d-sm text-retro-caption-bold py-1.5 px-3 flex items-center gap-1.5 shrink-0 ${activeTab === 'tour' ? 'is-primary' : 'is-cream'}`}
           >
             <img src="/icons/banana.png" className="w-4 h-4 pixelated shrink-0" alt="tour tab" />
             <span>추천 명소</span>
@@ -279,7 +318,7 @@ export default function StationBillboard() {
         </div>
 
         {/* 전광판 메인 영역 */}
-        <div key={activeTab} className="h-32 md:h-36 max-h-[30vh] overflow-y-auto pr-2 animate-tab-fade flex flex-col gap-2" style={{ scrollbarWidth: 'none' }}>
+        <div key={activeTab} className="h-48 md:h-56 max-h-[38vh] overflow-y-auto pr-2 animate-tab-fade flex flex-col gap-2" style={{ scrollbarWidth: 'none' }}>
           {loading ? (
             <div className="text-center mt-8 animate-pulse text-retro-body-bold text-retro-green flex flex-col items-center gap-2">
               <img src="/icons/compass_icon.png" className="w-6 h-6 pixelated animate-spin" alt="loading" />
@@ -289,8 +328,14 @@ export default function StationBillboard() {
             <div className="text-center mt-6">
               <p className="text-retro-body-bold text-retro-red mb-3">{fetchError}</p>
               <button
-                onClick={() => setRetryKey(k => k + 1)}
-                className="nes-btn is-error text-retro-caption-bold px-2.5 py-1 flex items-center justify-center gap-1.5 mx-auto"
+                onClick={() => {
+                  const now = Date.now();
+                  if (now - lastRetryTimeRef.current < 2000) return;
+                  lastRetryTimeRef.current = now;
+                  playClickSound();
+                  setRetryKey(k => k + 1);
+                }}
+                className="pixel-btn-3d pixel-btn-3d-sm is-error text-retro-caption-bold py-1.5 px-3 flex items-center justify-center gap-1.5 mx-auto"
               >
                 <img src="/icons/compass_icon.png" className="w-3.5 h-3.5 pixelated" alt="retry" />
                 <span>재시도</span>
@@ -366,7 +411,7 @@ export default function StationBillboard() {
                           alt="attraction" 
                         />
                       ) : (
-                        <div className="w-10 h-10 bg-[#e4ebe4] flex items-center justify-center rounded border-retro-thin shrink-0">
+                        <div className="w-10 h-10 bg-retro-moss flex items-center justify-center rounded border-retro-thin shrink-0">
                           <img src="/icons/banana.png" className="w-5 h-5 pixelated" alt="sight" />
                         </div>
                       )}
@@ -380,7 +425,8 @@ export default function StationBillboard() {
                       href={`https://map.kakao.com/link/to/${encodeURIComponent(attraction.title)},${attraction.mapY},${attraction.mapX}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="nes-btn is-warning text-retro-caption-bold py-1 px-1.5 text-center shrink-0 self-center flex items-center gap-1.5 shadow-[1px_1px_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-[1px]"
+                      onClick={() => playClickSound()}
+                      className="pixel-btn-3d pixel-btn-3d-sm is-warning text-retro-caption-bold py-1 px-1.5 text-center shrink-0 self-center flex items-center gap-1.5"
                       style={{ textDecoration: 'none' }}
                     >
                       <img src="/icons/walk_man.png" className="w-3 h-3 pixelated shrink-0" alt="go" />

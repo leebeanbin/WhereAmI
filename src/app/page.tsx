@@ -25,6 +25,7 @@ export default function Home() {
     setDetectedMode, setConfirmedMode, selectedStation, loadPersistedJourney,
     soundEnabled, scanlineEnabled, gpsPermissionStatus,
     navigationTarget, setNavigationTarget,
+    navMode, setNavMode,
     setSoundEnabled, setScanlineEnabled, setGpsPermissionStatus
   } = useLocationStore();
   
@@ -258,27 +259,65 @@ export default function Home() {
             navigationTarget.lat, navigationTarget.lng,
           );
           const walkMin = Math.max(1, Math.round(navDist / 4 * 60));
+          const carMin = Math.max(1, Math.round(navDist / 40 * 60));
+          const transitLink = `https://map.kakao.com/link/to/${encodeURIComponent(navigationTarget.name)},${navigationTarget.lat},${navigationTarget.lng}`;
           return (
             <div className="absolute bottom-4 left-2 right-14 z-10 bg-retro-cream border-2 border-black rounded-sm p-2.5 shadow-[4px_4px_0_rgba(0,0,0,1)]">
+              {/* 교통수단 탭 */}
+              <div className="flex gap-1 mb-2 select-none">
+                {(['walk', 'car', 'transit'] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => { playClickSound(); setNavMode(m); }}
+                    className={`pixel-btn-3d pixel-btn-3d-sm text-retro-tiny py-0.5 px-2 flex-1 flex items-center justify-center gap-1 ${navMode === m ? 'is-primary' : 'is-cream'}`}
+                  >
+                    <img
+                      src={m === 'walk' ? '/icons/walk_man.png' : m === 'car' ? '/icons/compass_icon.png' : '/icons/bus_stop.png'}
+                      className="w-3 h-3 pixelated shrink-0"
+                      alt={m}
+                    />
+                    <span>{m === 'walk' ? '도보' : m === 'car' ? '자동차' : '대중교통'}</span>
+                  </button>
+                ))}
+              </div>
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <div className="text-retro-body-bold text-retro-wood truncate">★ {navigationTarget.name}</div>
                   <div className="text-retro-caption text-retro-green mt-0.5">
-                    {formatDistance(navDist)} · 도보 약 {walkMin}분
+                    {navMode === 'transit'
+                      ? `${formatDistance(navDist)} · 카카오맵에서 경로 확인`
+                      : navMode === 'car'
+                        ? `${formatDistance(navDist)} · 자동차 약 ${carMin}분`
+                        : `${formatDistance(navDist)} · 도보 약 ${walkMin}분`}
                   </div>
                 </div>
                 <div className="flex gap-1.5 shrink-0">
-                  <a
-                    href={navigationTarget.kakaoLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => playClickSound()}
-                    className="pixel-btn-3d pixel-btn-3d-sm is-warning text-retro-caption-bold py-1 px-1.5 flex items-center justify-center gap-1"
-                    style={{ textDecoration: 'none' }}
-                  >
-                    <img src="/icons/compass_icon.png" className="w-3 h-3 pixelated shrink-0" alt="kakao" />
-                    <span>카카오맵</span>
-                  </a>
+                  {navMode === 'transit' ? (
+                    <a
+                      href={transitLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => playClickSound()}
+                      className="pixel-btn-3d pixel-btn-3d-sm is-warning text-retro-caption-bold py-1 px-1.5 flex items-center justify-center gap-1"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <img src="/icons/bus_stop.png" className="w-3 h-3 pixelated shrink-0" alt="transit" />
+                      <span>카카오맵</span>
+                    </a>
+                  ) : (
+                    <a
+                      href={navigationTarget.kakaoLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => playClickSound()}
+                      className="pixel-btn-3d pixel-btn-3d-sm is-warning text-retro-caption-bold py-1 px-1.5 flex items-center justify-center gap-1"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <img src="/icons/compass_icon.png" className="w-3 h-3 pixelated shrink-0" alt="kakao" />
+                      <span>카카오맵</span>
+                    </a>
+                  )}
                   <button
                     type="button"
                     onClick={() => { playClickSound(); setNavigationTarget(null); }}

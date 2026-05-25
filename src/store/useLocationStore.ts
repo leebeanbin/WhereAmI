@@ -23,6 +23,7 @@ interface LocationState {
   selectedStation: StationInfo | null;
   navigationTarget: NavigationTarget | null;
   navigationRoute: { lat: number; lng: number }[] | null;
+  navMode: 'walk' | 'car' | 'transit';
   mapClickedLocation: { lat: number; lng: number } | null;
   showTicketModal: boolean;
   cityCode: string;
@@ -40,6 +41,7 @@ interface LocationState {
   setSelectedStation: (station: StationInfo | null) => void;
   setNavigationTarget: (target: NavigationTarget | null) => void;
   setNavigationRoute: (route: { lat: number; lng: number }[] | null) => void;
+  setNavMode: (mode: 'walk' | 'car' | 'transit') => void;
   setMapClickedLocation: (loc: { lat: number; lng: number } | null) => void;
   setShowTicketModal: (show: boolean) => void;
   setCityCode: (code: string) => void;
@@ -74,6 +76,7 @@ export const useLocationStore = create<LocationState>((set) => ({
   selectedStation: null,
   navigationTarget: null,
   navigationRoute: null,
+  navMode: 'walk',
   mapClickedLocation: null,
   showTicketModal: false,
   cityCode: DEFAULT_CITY_CODE,
@@ -119,6 +122,7 @@ export const useLocationStore = create<LocationState>((set) => ({
   setSelectedStation: (station) => set({ selectedStation: station }),
   setNavigationTarget: (target) => set({ navigationTarget: target, navigationRoute: null }),
   setNavigationRoute: (route) => set({ navigationRoute: route }),
+  setNavMode: (mode) => set({ navMode: mode, navigationRoute: null }),
   setMapClickedLocation: (loc) => set({ mapClickedLocation: loc }),
   setShowTicketModal: (show) => set({ showTicketModal: show }),
   setCityCode: (code) => set({ cityCode: code }),

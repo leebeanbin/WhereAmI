@@ -1,42 +1,67 @@
 'use client';
 
-import { Map, Polyline, MapMarker } from 'react-kakao-maps-sdk';
+import { Map, Polyline, MapMarker, CustomOverlayMap } from 'react-kakao-maps-sdk';
 import { useLocationStore } from '@/store/useLocationStore';
 import { TransportIconFactory } from '@/application/factories/TransportIconFactory';
 import { useNearbyStations } from '@/application/hooks/useNearbyStations';
+import { useNavigationRoute } from '@/application/hooks/useNavigationRoute';
 import { useCityCode } from '@/application/hooks/useCityCode';
-import { MAP_ZOOM_LEVEL, STATION_MARKER_SIZE, PLAYER_MARKER_SIZE, ROUTE_COLORS, ROUTE_STROKE_WEIGHT, ROUTE_STROKE_OPACITY } from '@/constants/map';
+import { MAP_ZOOM_LEVEL, ROUTE_COLORS, ROUTE_STROKE_WEIGHT, ROUTE_STROKE_OPACITY } from '@/constants/map';
+import { playClickSound } from '@/application/utils/audioUtils';
 import { useEffect, useState } from 'react';
 
 export default function MapComponent() {
   const {
     currentLocation, route, confirmedMode,
     nearbyStations,
-    selectedStation, setSelectedStation,
+    setSelectedStation,
+    navigationTarget, navigationRoute, navMode,
+    setMapClickedLocation,
   } = useLocationStore();
-  const [isLoaded, setIsLoaded] = useState(false);
 
-  useNearbyStations();
+  const getStationOffsetY = (type: 'bus' | 'subway' | 'train') => {
+    if (type === 'subway') return 59;
+    if (type === 'train') return 57;
+    return 56; // bus
+  };
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(MAP_ZOOM_LEVEL);
+
+  useNearbyStations(zoomLevel);
+  useNavigationRoute();
   useCityCode();
 
   useEffect(() => {
     const checkKakao = setInterval(() => {
       if (window.kakao && window.kakao.maps) {
-        setIsLoaded(true);
         clearInterval(checkKakao);
+        // autoload=false이므로 반드시 load() 후 SDK 사용
+        window.kakao.maps.load(() => {
+          setIsLoaded(true);
+        });
       }
     }, 100);
     return () => clearInterval(checkKakao);
   }, []);
 
-  if (!currentLocation) return null;
-
   // 카카오 키가 없거나 스크립트 로딩 전이면 Placeholder 표시
   if (!isLoaded || !process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY) {
      return (
-        <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100/50 rounded-xl border-4 border-black border-dashed p-4">
-           <p className="text-gray-500 text-xs mb-2 text-center">지도 스크립트를 불러오는 중이거나<br/>API 키가 없습니다.</p>
-           <p className="text-[10px] text-gray-400">({currentLocation.lat.toFixed(4)}, {currentLocation.lng.toFixed(4)})</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-retro-cream border-retro-thick p-6 animate-pixel-in">
+          <img src="/icons/compass_icon.png" className="w-14 h-14 pixelated mb-3 animate-spin" style={{ animationDuration: '4s' }} alt="map loading" />
+          <p className="text-retro-body-bold text-retro-wood mb-1">지도 신호 탐색 중...</p>
+          <p className="text-retro-caption text-retro-green/70 text-center leading-relaxed mb-4">
+            Kakao Map API 키가 필요합니다.<br />
+            <span className="text-retro-tiny">developers.kakao.com에서 발급 후<br />.env.local에 추가하세요.</span>
+          </p>
+          <div className="flex items-center gap-1.5 border-t-2 border-dashed border-gray-300 pt-2">
+            <img src="/icons/tree_hud.png" className="w-3.5 h-3.5 pixelated shrink-0 animate-gps-blink" alt="gps" />
+            <span className="text-retro-tiny text-retro-gray font-mono">
+              {currentLocation
+                ? `${currentLocation.lat.toFixed(4)}, ${currentLocation.lng.toFixed(4)}`
+                : '신호 탐색 대기 중...'}
+            </span>
+          </div>
         </div>
      );
   }
@@ -68,52 +93,141 @@ export default function MapComponent() {
     return ROUTE_COLORS.walk;
   };
 
-  const getStrokeStyle = (mode: string | null) =>
-    mode === 'walk' || mode === null ? 'shortdash' : 'solid';
+  const getStrokeStyle = (mode: string | null) => {
+    if (mode === 'walk' || mode === null) return 'dotted';  // 도보: 점선 (카카오맵 표준 속성)
+    if (mode === 'bus') return 'solid';
+    return 'dashed';  // 기차: 대시선 (카카오맵 표준 속성)
+  };
+
+  const defaultCenter = { lat: 37.5665, lng: 126.9780 }; // 서울역
+  const mapCenter = currentLocation || defaultCenter;
 
   return (
-    <Map
-      center={currentLocation}
-      style={{ width: '100%', height: '100%', borderRadius: '8px' }}
-      level={MAP_ZOOM_LEVEL}
-      className="border-4 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] retro-map-filter"
-      onClick={() => setSelectedStation(null)}
-    >
-      {nearbyStations.map((station) => (
-        <MapMarker
-          key={station.stationId}
-          position={{ lat: station.lat, lng: station.lng }}
-          image={{
-            src: TransportIconFactory.getStationMarkerPath(station.type),
-            size: { width: STATION_MARKER_SIZE, height: STATION_MARKER_SIZE },
-            options: { offset: { x: STATION_MARKER_SIZE / 2, y: STATION_MARKER_SIZE } },
-          }}
-          title={station.stationName}
-          onClick={() => setSelectedStation(station)}
-        />
-      ))}
-
-      <MapMarker
-        position={currentLocation}
-        image={{
-          src: TransportIconFactory.getIconPath(confirmedMode),
-          size: { width: PLAYER_MARKER_SIZE, height: PLAYER_MARKER_SIZE },
-          options: { offset: { x: PLAYER_MARKER_SIZE / 2, y: PLAYER_MARKER_SIZE } },
+    <div className="absolute inset-0">
+      <Map
+        center={mapCenter}
+        style={{ width: '100%', height: '100%', borderRadius: '8px' }}
+        level={zoomLevel}
+        onZoomChanged={(map) => setZoomLevel(map.getLevel())}
+        className="retro-map-filter"
+        onClick={(_, mouseEvent) => {
+          setSelectedStation(null);
+          setMapClickedLocation({
+            lat: mouseEvent.latLng.getLat(),
+            lng: mouseEvent.latLng.getLng(),
+          });
         }}
-      />
-
-      {segments.map((seg, idx) =>
-        seg.path.length > 1 && (
-          <Polyline
-            key={idx}
-            path={[seg.path]}
-            strokeWeight={ROUTE_STROKE_WEIGHT}
-            strokeColor={getStrokeColor(seg.mode)}
-            strokeOpacity={ROUTE_STROKE_OPACITY}
-            strokeStyle={getStrokeStyle(seg.mode) as any}
+      >
+        {nearbyStations.map((station) => (
+          <MapMarker
+            key={station.stationId}
+            position={{ lat: station.lat, lng: station.lng }}
+            image={{
+              src: TransportIconFactory.getStationMarkerPath(station.type),
+              size: { width: 64, height: 64 },
+              options: { offset: { x: 32, y: getStationOffsetY(station.type) } }
+            }}
+            title={station.stationName}
+            onClick={() => {
+              setSelectedStation(station);
+            }}
           />
-        )
-      )}
-    </Map>
+        ))}
+
+        {currentLocation && (
+          <MapMarker
+            position={currentLocation}
+            image={{
+              src: TransportIconFactory.getIconPath(confirmedMode),
+              size: { width: 80, height: 80 },
+              options: { offset: { x: 40, y: 80 } }
+            }}
+            title="YOU"
+          />
+        )}
+
+        {segments.map((seg, idx) =>
+          seg.path.length > 1 && (
+            <Polyline
+              key={idx}
+              path={[seg.path]}
+              strokeWeight={ROUTE_STROKE_WEIGHT}
+              strokeColor={getStrokeColor(seg.mode)}
+              strokeOpacity={ROUTE_STROKE_OPACITY}
+              strokeStyle={getStrokeStyle(seg.mode) as any}
+            />
+          )
+        )}
+
+        {navigationTarget && navigationRoute && navigationRoute.length > 1 && (
+          <Polyline
+            path={[navigationRoute]}
+            strokeWeight={5}
+            strokeColor={navMode === 'car' ? '#d97706' : '#cc2222'}
+            strokeOpacity={0.9}
+            strokeStyle="solid"
+          />
+        )}
+        {navigationTarget && !navigationRoute && navMode !== 'transit' && currentLocation && (
+          <Polyline
+            path={[[currentLocation, { lat: navigationTarget.lat, lng: navigationTarget.lng }]]}
+            strokeWeight={3}
+            strokeColor={navMode === 'car' ? '#d97706' : '#cc2222'}
+            strokeOpacity={0.5}
+            strokeStyle="shortdash"
+          />
+        )}
+
+        {navigationTarget && (
+          <CustomOverlayMap
+            position={{ lat: navigationTarget.lat, lng: navigationTarget.lng }}
+            yAnchor={1.4}
+          >
+            <div style={{
+              background: '#cc2222',
+              border: '3px solid #000000',
+              padding: '4px 8px',
+              color: '#ffffff',
+              fontWeight: 'bold',
+              fontSize: '11px',
+              boxShadow: '3px 3px 0 #000000',
+              whiteSpace: 'nowrap',
+              fontFamily: 'monospace',
+              borderRadius: '2px',
+            }}>
+              ★ {navigationTarget.name}
+            </div>
+          </CustomOverlayMap>
+        )}
+      </Map>
+
+      {/* 8-Bit Custom Zoom Controller */}
+      <div className="absolute bottom-4 right-4 z-20 flex flex-col gap-1.5 select-none pointer-events-auto">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            playClickSound();
+            setZoomLevel(prev => Math.max(1, prev - 1));
+          }}
+          className="pixel-btn-3d pixel-btn-3d-sm is-primary w-10 h-10 !p-0 flex items-center justify-center text-xl font-bold text-white"
+          title="확대"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            playClickSound();
+            setZoomLevel(prev => Math.min(14, prev + 1));
+          }}
+          className="pixel-btn-3d pixel-btn-3d-sm is-primary w-10 h-10 !p-0 flex items-center justify-center text-xl font-bold text-white"
+          title="축소"
+        >
+          -
+        </button>
+      </div>
+    </div>
   );
 }

@@ -8,13 +8,14 @@ import type { NavigationTarget } from '../../store/useLocationStore';
 const REROUTE_THRESHOLD_M = 50;
 
 export function useNavigationRoute() {
-  const { navigationTarget, currentLocation, setNavigationRoute } = useLocationStore();
+  const { navigationTarget, navMode, currentLocation, setNavigationRoute } = useLocationStore();
   const lastFetchLocRef = useRef<{ lat: number; lng: number } | null>(null);
   const prevTargetRef = useRef<NavigationTarget | null>(null);
+  const prevModeRef = useRef<string>('walk');
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (!navigationTarget || !currentLocation) {
+    if (!navigationTarget || !currentLocation || navMode === 'transit') {
       abortRef.current?.abort();
       setNavigationRoute(null);
       lastFetchLocRef.current = null;
@@ -22,10 +23,11 @@ export function useNavigationRoute() {
       return;
     }
 
-    // 목적지가 바뀌면 위치 캐시 초기화 → 반드시 재요청
-    if (prevTargetRef.current !== navigationTarget) {
+    // 목적지 또는 모드가 바뀌면 위치 캐시 초기화 → 반드시 재요청
+    if (prevTargetRef.current !== navigationTarget || prevModeRef.current !== navMode) {
       lastFetchLocRef.current = null;
       prevTargetRef.current = navigationTarget;
+      prevModeRef.current = navMode;
     }
 
     const distFromLast = lastFetchLocRef.current
@@ -44,7 +46,7 @@ export function useNavigationRoute() {
     abortRef.current = ctrl;
 
     fetch(
-      `/api/route?fromLat=${currentLocation.lat}&fromLng=${currentLocation.lng}&toLat=${navigationTarget.lat}&toLng=${navigationTarget.lng}`,
+      `/api/route?fromLat=${currentLocation.lat}&fromLng=${currentLocation.lng}&toLat=${navigationTarget.lat}&toLng=${navigationTarget.lng}&mode=${navMode}`,
       { signal: ctrl.signal },
     )
       .then(res => res.json() as Promise<ApiBody<RouteResultDto>>)
@@ -54,5 +56,5 @@ export function useNavigationRoute() {
         }
       })
       .catch(() => {});
-  }, [navigationTarget, currentLocation, setNavigationRoute]);
+  }, [navigationTarget, navMode, currentLocation, setNavigationRoute]);
 }
