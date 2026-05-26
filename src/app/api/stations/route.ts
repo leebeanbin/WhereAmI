@@ -2,7 +2,6 @@ import { TagoApiAdapter } from '@/infrastructure/adapters/TagoApiAdapter';
 import { ApiResponse } from '@/lib/apiResponse';
 import { RequestParser } from '@/lib/requestParser';
 import { ErrorCode } from '@/constants/ResponseCodes';
-import { KAKAO_KEYWORD_SEARCH_URL } from '@/constants/api';
 import { getDistanceFromLatLonInKm } from '@/application/utils/geoUtils';
 import type { LatLngRequestDto } from '@/application/dtos/requests';
 import type { StationInfo } from '@/domain/interfaces/IPublicTransportAdapter';
@@ -55,6 +54,12 @@ export async function GET(request: Request) {
       warning = '주변 버스 정류장 데이터 조회 실패 (서비스 미승인 또는 점검 중)';
     }
 
+    // Tago·Kakao 병렬 조회 후 합산 — stationId prefix로 중복 방지
+    const kakaoIds = new Set(busStations.map(s => s.stationId));
+    const kakaoBus = await fetchNearbyBusStopsKakao(req.lat, req.lng, radius ?? 400);
+    const merged = kakaoBus.filter(s => !kakaoIds.has(s.stationId));
+    busStations = [...busStations, ...merged];
+
     try {
       subwayStations = await fetchNearbySubwayStations(req.lat, req.lng, radius ?? 400);
     } catch (subwayError: any) {
@@ -74,22 +79,55 @@ export async function GET(request: Request) {
   }
 }
 
-async function fetchNearbySubwayStations(lat: number, lng: number, radius: number): Promise<StationInfo[]> {
+async function fetchNearbyBusStopsKakao(lat: number, lng: number, radius: number): Promise<StationInfo[]> {
   const restKey = process.env.KAKAO_REST_API_KEY;
   if (!restKey) return [];
 
   try {
     const params = new URLSearchParams({
-      query: '지하철역',
+      query: '버스정류장',
       x: String(lng),
       y: String(lat),
-      radius: String(radius),
+      radius: String(Math.min(radius, 5000)),
+      size: '15',
+      sort: 'distance',
+    });
+    const res = await fetch(
+      `https://dapi.kakao.com/v2/local/search/keyword.json?${params}`,
+      { headers: { Authorization: `KakaoAK ${restKey}` } },
+    );
+    if (!res.ok) return [];
+    const body = await res.json();
+    return (body.documents ?? []).map((doc: any) => ({
+      stationId: `kakao-bus-${doc.id}`,
+      stationName: doc.place_name,
+      lat: parseFloat(doc.y),
+      lng: parseFloat(doc.x),
+      type: 'bus' as const,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+async function fetchNearbySubwayStations(lat: number, lng: number, radius: number): Promise<StationInfo[]> {
+  const restKey = process.env.KAKAO_REST_API_KEY;
+  if (!restKey) return [];
+
+  try {
+    // SW8 카테고리 코드로 검색 — 키워드보다 신뢰도 높음 (강남역, 신논현역 등도 정확히 히트)
+    const params = new URLSearchParams({
+      category_group_code: 'SW8',
+      x: String(lng),
+      y: String(lat),
+      radius: String(Math.min(radius, 5000)),
       size: '15',
     });
 
-    const response = await fetch(`${KAKAO_KEYWORD_SEARCH_URL}?${params}`, {
-      headers: { Authorization: `KakaoAK ${restKey}` },
-    });
+    const response = await fetch(
+      `https://dapi.kakao.com/v2/local/search/category.json?${params}`,
+      { headers: { Authorization: `KakaoAK ${restKey}` } },
+    );
 
     if (!response.ok) return [];
 

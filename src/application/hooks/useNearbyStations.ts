@@ -6,9 +6,10 @@ import type { ApiBody } from '../../lib/apiResponse';
 import type { StationInfo } from '../../domain/interfaces/IPublicTransportAdapter';
 
 export function useNearbyStations(zoomLevel: number) {
-  const { currentLocation, nearbyStations, setNearbyStations } = useLocationStore();
+  const { currentLocation, setNearbyStations } = useLocationStore();
   const lastFetchLoc = useRef<{ lat: number; lng: number } | null>(null);
   const lastZoomRef = useRef<number | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!currentLocation) return;
@@ -23,24 +24,27 @@ export function useNearbyStations(zoomLevel: number) {
         ) * 1000
       : Infinity;
 
-    // 반경의 1/4 이상 이동하거나 줌이 변경된 경우 재조회
-    if (distFromLast < radiusM / 4 && !zoomChanged && nearbyStations.length > 0) return;
+    // 반경의 1/4 이상 이동하거나 줌이 변경된 경우만 재조회
+    if (distFromLast < radiusM / 4 && !zoomChanged) return;
 
     lastFetchLoc.current = { lat: currentLocation.lat, lng: currentLocation.lng };
     lastZoomRef.current = zoomLevel;
 
-    fetch(`/api/stations?lat=${currentLocation.lat}&lng=${currentLocation.lng}&radius=${radiusM}`)
+    // 진행 중인 이전 요청 취소
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
+    fetch(`/api/stations?lat=${currentLocation.lat}&lng=${currentLocation.lng}&radius=${radiusM}`, {
+      signal: ctrl.signal,
+    })
       .then(res => res.json() as Promise<ApiBody<any>>)
       .then(body => {
         if (body.success) {
           const resData = body.data;
-          if (Array.isArray(resData)) {
-            setNearbyStations(resData);
-          } else {
-            setNearbyStations(resData.items || []);
-          }
+          setNearbyStations(Array.isArray(resData) ? resData : (resData.items ?? []));
         }
       })
-      .catch(err => console.error('[Stations]', err));
-  }, [currentLocation, nearbyStations.length, setNearbyStations, zoomLevel]);
+      .catch(err => { if (err.name !== 'AbortError') console.error('[Stations]', err); });
+  }, [currentLocation, setNearbyStations, zoomLevel]);
 }

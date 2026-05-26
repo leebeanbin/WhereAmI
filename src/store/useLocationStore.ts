@@ -97,8 +97,7 @@ export const useLocationStore = create<LocationState>((set) => ({
   toggleTracking: () => set((state) => {
       const newIsTracking = !state.isTracking;
       const newRoute = newIsTracking ? [] : state.route;
-      const newNearbyStations = newIsTracking ? [] : state.nearbyStations;
-      
+
       if (!newIsTracking) {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('whereami_active_journey');
@@ -110,7 +109,6 @@ export const useLocationStore = create<LocationState>((set) => ({
       return {
           isTracking: newIsTracking,
           route: newRoute,
-          nearbyStations: newNearbyStations,
       };
   }),
   setDetectedMode: (mode) => set({ detectedMode: mode }),
