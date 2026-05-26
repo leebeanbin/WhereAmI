@@ -32,7 +32,9 @@ interface LocationState {
   soundEnabled: boolean;
   scanlineEnabled: boolean;
   gpsPermissionStatus: 'granted' | 'prompt' | 'denied' | 'unknown';
+  currentRegion: string | null;
   setCurrentLocation: (loc: { lat: number; lng: number }) => void;
+  setCurrentRegion: (region: string | null) => void;
   addRoutePoint: (point: RoutePoint) => void;
   toggleTracking: () => void;
   setDetectedMode: (mode: TransportMode) => void;
@@ -85,7 +87,9 @@ export const useLocationStore = create<LocationState>((set) => ({
   soundEnabled: true, // Default to true
   scanlineEnabled: true, // Default to true
   gpsPermissionStatus: 'unknown',
+  currentRegion: null,
   setCurrentLocation: (loc) => set({ currentLocation: loc }),
+  setCurrentRegion: (region) => set({ currentRegion: region }),
   addRoutePoint: (point) => set((state) => {
       const newRoute = [...state.route, point];
       saveToLocalStorage(newRoute, state.isTracking, state.confirmedMode);

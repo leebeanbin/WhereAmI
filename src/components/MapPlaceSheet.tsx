@@ -420,6 +420,17 @@ export default function MapPlaceSheet() {
             <img src="/icons/compass_icon.png" className="w-3.5 h-3.5 pixelated shrink-0" alt="kakao" />
             <span>카카오맵</span>
           </a>
+          <a
+            href={`https://map.kakao.com/link/roadview/${mapClickedLocation.lat},${mapClickedLocation.lng}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => playClickSound()}
+            className="pixel-btn-3d pixel-btn-3d-sm is-cream text-retro-caption-bold py-1.5 px-2.5 flex items-center justify-center gap-1"
+            style={{ textDecoration: 'none' }}
+            title="거리뷰"
+          >
+            <span>👁</span>
+          </a>
         </div>
       </div>
     </div>

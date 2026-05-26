@@ -13,6 +13,9 @@ import TourismNewsTicker from '@/components/TourismNewsTicker';
 import PixelToast from '@/components/PixelToast';
 import AdventureGuidePanel from '@/components/AdventureGuidePanel';
 import MapPlaceSheet from '@/components/MapPlaceSheet';
+import NearbyRecommendSheet from '@/components/NearbyRecommendSheet';
+import InstallPromptBanner from '@/components/InstallPromptBanner';
+import { usePushNotification } from '@/application/hooks/usePushNotification';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
@@ -26,7 +29,8 @@ export default function Home() {
     soundEnabled, scanlineEnabled, gpsPermissionStatus,
     navigationTarget, setNavigationTarget,
     navMode, setNavMode,
-    setSoundEnabled, setScanlineEnabled, setGpsPermissionStatus
+    setSoundEnabled, setScanlineEnabled, setGpsPermissionStatus,
+    currentRegion,
   } = useLocationStore();
   
   const locationAdapter = useMemo(() => new GeolocationAdapter(), []);
@@ -53,8 +57,11 @@ export default function Home() {
     }
   }, [setGpsPermissionStatus]);
 
+  const { sendPush } = usePushNotification();
+
   // 모험 가이드 모달 상태
   const [showGuide, setShowGuide] = useState(false);
+  const [showNearby, setShowNearby] = useState(false);
 
   // 라이브 경과 타이머 (모험 중 매 초 업데이트)
   const [elapsedSec, setElapsedSec] = useState(0);
@@ -124,11 +131,19 @@ export default function Home() {
   const handleStopTracking = () => {
     playPowerDownSound();
     stopTracking();
+    // 모험 종료 Push 알림 전송
+    if (liveDistanceKm > 0) {
+      sendPush(
+        '모험 완료! 🎉',
+        `총 ${(liveDistanceKm).toFixed(2)}km 달성했습니다. 여정을 확인해보세요!`,
+        '/history',
+      );
+    }
   };
 
   return (
     <main
-      className={`w-full bg-gray-100 text-retro-dark font-neodgm p-2 sm:p-3 overflow-hidden relative ${scanlineEnabled ? 'crt-active scanlines crt-flicker crt-curve' : ''}`}
+      className={`w-full bg-gray-100 text-retro-dark font-neodgm safe-inset overflow-hidden relative ${scanlineEnabled ? 'crt-active scanlines crt-flicker crt-curve' : ''}`}
       style={{ height: '100dvh', display: 'grid', gridTemplateRows: 'auto 1fr auto auto' }}
     >
       <TourismNewsTicker />
@@ -174,7 +189,7 @@ export default function Home() {
             </button>
           </div>
         </div>
-        {/* 행 2: 모험 가이드 + 보관함 */}
+        {/* 행 2: 모험 가이드 + 주변 탐색 + 보관함 */}
         <div className="flex gap-2 w-full">
           <button
             onClick={() => { playClickSound(); setShowGuide(true); }}
@@ -182,6 +197,13 @@ export default function Home() {
           >
             <img src="/icons/compass_icon.png" className="w-4 h-4 pixelated shrink-0" alt="guide" />
             <span>모험 가이드</span>
+          </button>
+          <button
+            onClick={() => { playClickSound(); setShowNearby(true); }}
+            className="pixel-btn-3d pixel-btn-3d-sm is-success text-retro-caption-bold py-1 px-3 flex-1 flex items-center justify-center gap-1.5"
+          >
+            <img src="/icons/compass_icon.png" className="w-4 h-4 pixelated shrink-0" alt="nearby" />
+            <span>주변 탐색</span>
           </button>
           <Link
             href="/history"
@@ -231,6 +253,11 @@ export default function Home() {
                         {String(Math.floor(elapsedSec / 3600)).padStart(2, '0')}:
                         {String(Math.floor((elapsedSec % 3600) / 60)).padStart(2, '0')}:
                         {String(elapsedSec % 60).padStart(2, '0')}
+                      </p>
+                    )}
+                    {currentRegion && (
+                      <p className="text-retro-tiny text-retro-wood mt-1 font-bold tracking-wide border-t border-dashed border-gray-200 pt-1">
+                        📍 {currentRegion}
                       </p>
                     )}
                 </div>
@@ -422,6 +449,14 @@ export default function Home() {
       {showGuide && (
         <AdventureGuidePanel onClose={() => setShowGuide(false)} />
       )}
+
+      {/* 주변 탐색 시트 */}
+      {showNearby && (
+        <NearbyRecommendSheet onClose={() => setShowNearby(false)} />
+      )}
+
+      {/* 설치 유도 + Push 알림 배너 */}
+      <InstallPromptBanner />
     </main>
   );
 }

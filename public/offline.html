@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>WHERE AM I? — 오프라인</title>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/neodgm/neodgm-webfont@latest/neodgm/style.css');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'NeoDunggeunmo', monospace;
+      background: #e0e8e0;
+      color: #111827;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      padding-top: max(1.5rem, env(safe-area-inset-top));
+      padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+    }
+
+    .card {
+      background: #fff;
+      border: 4px solid #111827;
+      box-shadow: 6px 6px 0 #111827;
+      padding: 2rem 1.5rem;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .icon {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 1rem;
+      image-rendering: pixelated;
+      animation: blink 1.2s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    h1 {
+      font-size: 1.1rem;
+      letter-spacing: 0.1em;
+      color: #2d6a4f;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+    }
+
+    p {
+      font-size: 0.78rem;
+      color: #6b7280;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .status {
+      background: #f8f9fa;
+      border: 2px dashed #d1d5db;
+      padding: 0.75rem;
+      font-size: 0.7rem;
+      color: #374151;
+      margin-bottom: 1.5rem;
+    }
+
+    button {
+      font-family: 'NeoDunggeunmo', monospace;
+      font-size: 0.85rem;
+      background: #2d6a4f;
+      color: #fff;
+      border: 3px solid #111827;
+      box-shadow: 3px 3px 0 #111827;
+      padding: 0.6rem 1.5rem;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      width: 100%;
+    }
+
+    button:active {
+      box-shadow: none;
+      transform: translate(3px, 3px);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <span class="icon">📡</span>
+    <h1>신호 두절</h1>
+    <p>
+      인터넷 연결이 없어<br />
+      탐험 데이터를 불러올 수 없습니다.<br />
+      <br />
+      Wi-Fi 또는 모바일 데이터를<br />
+      확인한 후 다시 시도하세요.
+    </p>
+    <div class="status">
+      [ CONNECTION LOST ]<br />
+      대기 중... █
+    </div>
+    <button onclick="location.reload()">재시도</button>
+  </div>
+</body>
+</html>

@@ -479,6 +479,18 @@ body {
 }
 
 /* ===================== */
+/*  iOS Safe Area        */
+/* ===================== */
+
+/* viewport-fit=cover 시 노치/Dynamic Island/홈 인디케이터 영역 확보 */
+.safe-inset {
+  padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+  padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
+}
+
+/* ===================== */
 /*  카카오 맵 레트로 필터   */
 /* ===================== */
 

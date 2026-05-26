@@ -1,14 +1,15 @@
 'use client';
 
-import { Map, Polyline, MapMarker, CustomOverlayMap } from 'react-kakao-maps-sdk';
+import { Map, Polyline, MapMarker, CustomOverlayMap, MarkerClusterer } from 'react-kakao-maps-sdk';
 import { useLocationStore } from '@/store/useLocationStore';
 import { TransportIconFactory } from '@/application/factories/TransportIconFactory';
 import { useNearbyStations } from '@/application/hooks/useNearbyStations';
 import { useNavigationRoute } from '@/application/hooks/useNavigationRoute';
 import { useCityCode } from '@/application/hooks/useCityCode';
+import { getDistanceFromLatLonInKm } from '@/application/utils/geoUtils';
 import { MAP_ZOOM_LEVEL, ROUTE_COLORS, ROUTE_STROKE_WEIGHT, ROUTE_STROKE_OPACITY } from '@/constants/map';
 import { playClickSound } from '@/application/utils/audioUtils';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function MapComponent() {
   const {
@@ -17,6 +18,7 @@ export default function MapComponent() {
     setSelectedStation,
     navigationTarget, navigationRoute, navMode,
     setMapClickedLocation,
+    setCurrentRegion,
   } = useLocationStore();
 
   const getStationOffsetY = (type: 'bus' | 'subway' | 'train') => {
@@ -26,6 +28,8 @@ export default function MapComponent() {
   };
   const [isLoaded, setIsLoaded] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(MAP_ZOOM_LEVEL);
+  const [isSatellite, setIsSatellite] = useState(false);
+  const lastRegionLocRef = useRef<{ lat: number; lng: number } | null>(null);
 
   useNearbyStations(zoomLevel);
   useNavigationRoute();
@@ -43,6 +47,26 @@ export default function MapComponent() {
     }, 100);
     return () => clearInterval(checkKakao);
   }, []);
+
+  // 현재 위치가 50m 이상 이동했을 때만 행정동 재조회
+  useEffect(() => {
+    if (!isLoaded || !currentLocation) return;
+    const prev = lastRegionLocRef.current;
+    if (prev && getDistanceFromLatLonInKm(prev.lat, prev.lng, currentLocation.lat, currentLocation.lng) * 1000 < 50) return;
+    lastRegionLocRef.current = currentLocation;
+
+    const kakaoSvc = (window as any).kakao?.maps?.services;
+    if (!kakaoSvc) return;
+    const geocoder = new kakaoSvc.Geocoder();
+    geocoder.coord2RegionCode(currentLocation.lng, currentLocation.lat, (result: any[], status: any) => {
+      if (status !== kakaoSvc.Status.OK) return;
+      const region = result.find((r: any) => r.region_type === 'H') ?? result[0];
+      if (!region) return;
+      const gu = region.region_2depth_name;
+      const dong = region.region_3depth_name;
+      setCurrentRegion([gu, dong].filter(Boolean).join(' ') || null);
+    });
+  }, [isLoaded, currentLocation, setCurrentRegion]);
 
   // 카카오 키가 없거나 스크립트 로딩 전이면 Placeholder 표시
   if (!isLoaded || !process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY) {
@@ -109,7 +133,11 @@ export default function MapComponent() {
         style={{ width: '100%', height: '100%', borderRadius: '8px' }}
         level={zoomLevel}
         onZoomChanged={(map) => setZoomLevel(map.getLevel())}
-        className="retro-map-filter"
+        className={isSatellite ? undefined : 'retro-map-filter'}
+        mapTypeId={isSatellite
+          ? (window as any).kakao?.maps?.MapTypeId?.HYBRID
+          : (window as any).kakao?.maps?.MapTypeId?.ROADMAP
+        }
         onClick={(_, mouseEvent) => {
           setSelectedStation(null);
           setMapClickedLocation({
@@ -118,21 +146,23 @@ export default function MapComponent() {
           });
         }}
       >
-        {nearbyStations.map((station) => (
-          <MapMarker
-            key={station.stationId}
-            position={{ lat: station.lat, lng: station.lng }}
-            image={{
-              src: TransportIconFactory.getStationMarkerPath(station.type),
-              size: { width: 64, height: 64 },
-              options: { offset: { x: 32, y: getStationOffsetY(station.type) } }
-            }}
-            title={station.stationName}
-            onClick={() => {
-              setSelectedStation(station);
-            }}
-          />
-        ))}
+        <MarkerClusterer averageCenter={true} minLevel={5}>
+          {nearbyStations.map((station) => (
+            <MapMarker
+              key={station.stationId}
+              position={{ lat: station.lat, lng: station.lng }}
+              image={{
+                src: TransportIconFactory.getStationMarkerPath(station.type),
+                size: { width: 64, height: 64 },
+                options: { offset: { x: 32, y: getStationOffsetY(station.type) } }
+              }}
+              title={station.stationName}
+              onClick={() => {
+                setSelectedStation(station);
+              }}
+            />
+          ))}
+        </MarkerClusterer>
 
         {currentLocation && (
           <MapMarker
@@ -201,8 +231,20 @@ export default function MapComponent() {
         )}
       </Map>
 
-      {/* 8-Bit Custom Zoom Controller */}
+      {/* 8-Bit Custom Zoom + Satellite Controller */}
       <div className="absolute bottom-4 right-4 z-20 flex flex-col gap-1.5 select-none pointer-events-auto">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            playClickSound();
+            setIsSatellite(v => !v);
+          }}
+          className={`pixel-btn-3d pixel-btn-3d-sm w-10 h-10 !p-0 flex items-center justify-center text-base ${isSatellite ? 'is-warning' : 'is-primary'}`}
+          title={isSatellite ? '일반 지도' : '위성 지도'}
+        >
+          {isSatellite ? '🗺' : '🛰'}
+        </button>
         <button
           type="button"
           onClick={(e) => {

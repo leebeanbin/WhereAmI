@@ -1,11 +1,26 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#1a1a2e',
+};
+
 export const metadata: Metadata = {
   title: "Where Am I? - Retro Tracker",
-  description: "A cute retro pixel art location tracker",
+  description: "나만의 레트로 모빌리티 라이프로그 다이어리",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "WhereAmI",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    apple: "/icons/banana_192.png",
+  },
 };
 
 export default function RootLayout({
@@ -21,9 +36,9 @@ export default function RootLayout({
       </head>
       <body className="h-full overflow-hidden flex flex-col font-neodgm bg-gray-100" suppressHydrationWarning>
         {process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY && (
-           <Script 
-             src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY}&libraries=services,clusterer,drawing&autoload=false`} 
-             strategy="beforeInteractive" 
+           <Script
+             src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY}&libraries=services,clusterer,drawing&autoload=false`}
+             strategy="beforeInteractive"
            />
         )}
         {children}
