@@ -2,12 +2,14 @@
 
 > **"네비게이션이 아닌, 나의 이동 경로를 레트로 감성으로 기록하는 라이프로깅(Life-logging) 웹 애플리케이션"**
 
-![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?logo=tailwind-css)
-![Zustand](https://img.shields.io/badge/Zustand-4.5-orange)
-![Firebase](https://img.shields.io/badge/Firebase-10.0-FFCA28?logo=firebase)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?logo=tailwind-css)
+![Zustand](https://img.shields.io/badge/Zustand-5-orange)
+![Firebase](https://img.shields.io/badge/Firebase-12-FFCA28?logo=firebase)
 ![PWA](https://img.shields.io/badge/PWA-Ready-5A0FC8?logo=pwa)
+![Kakao Maps](https://img.shields.io/badge/Kakao%20Maps-API-yellow)
 
 ---
 
@@ -134,18 +136,36 @@ src/
 ## 🚀 7. 실행 방법 (Getting Started)
 
 ### 6.1 환경 변수 설정 (`.env.local`)
-프로젝트 루트에 `.env.local` 파일을 생성하고 발급받은 키를 입력합니다.
+`.env.local.example`을 복사하여 `.env.local`을 생성하고 발급받은 키를 입력합니다.
+```bash
+cp .env.local.example .env.local
+```
+
 ```env
-# Firebase Configuration
+# Firebase (console.firebase.google.com)
 NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key_here
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain_here
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id_here
-# ... 기타 Firebase 설정 ...
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket_here
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id_here
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id_here
 
-# Kakao Map Configuration (카카오 디벨로퍼스 JavaScript 키)
-NEXT_PUBLIC_KAKAO_MAP_API_KEY=your_kakao_map_api_key_here
+# Kakao Map & REST API (developers.kakao.com)
+NEXT_PUBLIC_KAKAO_MAP_API_KEY=your_kakao_map_api_key_here   # 지도 표시용 (브라우저 키)
+KAKAO_REST_API_KEY=your_kakao_rest_api_key_here              # 좌표→행정구역 변환용
 
-# TAGO Open API Configuration (국토교통부 일반 인증키 - 디코딩)
+# 국토교통부 TAGO Open API — 버스·열차 정보 (data.go.kr)
 TAGO_API_KEY=your_tago_api_key_here
+
+# 한국관광공사 TourAPI — 관광정보 (data.go.kr)
+TOUR_API_KEY=your_tour_api_key_here
+
+# 서울교통공사 API — 지하철 실시간 도착정보 (data.seoul.go.kr)
+SEOUL_METRO_API_KEY=your_seoul_metro_api_key_here
+
+# Web Push VAPID (npx web-push generate-vapid-keys 로 생성)
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=your_vapid_public_key_here
+VAPID_PRIVATE_KEY=your_vapid_private_key_here
 ```
 
 ### 6.2 패키지 설치 및 실행
@@ -157,3 +177,37 @@ npm run dev
 ```
 
 > 💡 **심사/면접관을 위한 테스트 팁:** 이 앱은 100% 모바일 사용을 상정하고 설계되었습니다. 브라우저로 `localhost:3000`에 접속하신 후, **개발자 도구 (F12) -> 모바일 기기 시뮬레이터 모드 (Ctrl+Shift+M)** 로 전환하여 테스트하시면 실제 앱과 동일한 최적의 뷰를 경험하실 수 있습니다.
+
+<br/>
+
+## 📱 8. 모바일 PWA 설치 가이드
+
+스마트폰 홈 화면에 설치하면 네이티브 앱처럼 전체 화면으로 구동됩니다.
+
+### iOS (Safari)
+1. Safari에서 앱 URL 접속
+2. 하단 공유 버튼( ![공유](https://img.shields.io/badge/-공유-lightgrey) ) 탭
+3. **"홈 화면에 추가"** 선택 → 추가
+
+### Android (Chrome)
+1. Chrome에서 앱 URL 접속
+2. 브라우저 우측 상단 메뉴(⋮) 탭
+3. **"앱 설치"** 또는 **"홈 화면에 추가"** 선택
+
+> PWA 설치 시 앱 바로가기 2가지가 등록됩니다: **모험 시작** (메인 지도) / **보관함** (여정 기록)
+
+<br/>
+
+## 🖼️ 9. 스크린샷
+
+| 메인 지도 (트래킹 중) | LED 전광판 (버스 도착정보) | 레트로 영수증 티켓 |
+|:---:|:---:|:---:|
+| *(screenshot)* | *(screenshot)* | *(screenshot)* |
+
+> 스크린샷은 실제 기기 캡처 후 업데이트 예정입니다.
+
+<br/>
+
+## 📄 10. 라이선스
+
+MIT License © 2026 [leebeanbin](https://github.com/leebeanbin)
